@@ -15,13 +15,13 @@ LOAD CSV WITH HEADERS FROM 'file:///final_authors.csv' AS author FIELDTERMINATOR
 UNWIND split(replace(replace(author.ID_ADD_PRODUCAO_INTELECTUAL, '[', ''), ']', ''), ',') as prod_id
 MERGE (a:Author { id: author.IDX })
 ON CREATE SET
-a.name = author.NM_AUTOR,
-a.capes_id = author.ID,
-a.university = author.SG_ENTIDADE_ENSINO,
-a.type = author.TP_AUTOR,
-a.abnt_name = author.NM_ABNT_AUTOR,
-a.ies_program = author.NM_PROGRAMA_IES,
-a.knowledge_area = author.NM_AREA_CONHECIMENTO
+  a.name = author.NM_AUTOR,
+  a.capes_id = author.ID,
+  a.university = author.SG_ENTIDADE_ENSINO,
+  a.type = author.TP_AUTOR,
+  a.abnt_name = author.NM_ABNT_AUTOR,
+  a.ies_program = author.NM_PROGRAMA_IES,
+  a.knowledge_area = author.NM_AREA_CONHECIMENTO;
 
 // Criação da entidade 'Production' para o id
 MERGE (p:Production { prod_id: prod_id })
