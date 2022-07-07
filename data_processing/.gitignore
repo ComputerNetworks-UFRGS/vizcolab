@@ -1,2 +1,4 @@
-datasets/
-output/
+datasets
+output
+__pycache__
+.ipynb_checkpoints
