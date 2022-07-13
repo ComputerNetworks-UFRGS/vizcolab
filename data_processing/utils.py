@@ -1,5 +1,6 @@
 import pandas as pd
 import re, unicodedata
+from ast import literal_eval
 from collections import Counter
 
 # Data Type Optimization
@@ -29,6 +30,7 @@ def optimize(df: pd.DataFrame):
 
 # Data Normalization
 # https://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-normalize-in-a-python-unicode-string
+
 def strip_accents(text):
   text = unicodedata.normalize('NFD', text)
   text = text.encode('ascii', 'ignore')
@@ -55,23 +57,37 @@ def normalize_name(name):
 
   return norm
 
+def normalize_title(text):
+  norm = text
+
+  # remove quotes if title is surrounded by quotes
+  if (norm[0] == '"' and norm[-1] == '"'):
+    try:
+      norm = literal_eval("%s" % norm)
+    except:
+      norm = norm[1:-1]
+
+  # remove leading and trailing spaces
+  norm = " ".join(norm.split())
+  norm = norm.replace("  ", " ")
+  norm = norm.strip()
+
+  return norm
+
 def firstAndLastName(name):
   it = name.split(' ')
   return ' '.join([it[0], it[-1]])
 
-
 # Aggregation Funtions
-def agg_to_dict(items):
-  return items.astype(str).value_counts().to_dict()
+
+def count_to_dict(items):
+  return items.value_counts().to_dict()
 
 def most_frequent(items):
   values = items.dropna()
   if len(values) == 0: return None
   occurence_count = Counter(values)
   return occurence_count.most_common(1)[0][0]
-
-def toArray(item):
-  return item if hasattr(item, '__iter__') and not isinstance(item, str) else [item]
 
 def priority(priority_list):
   return lambda items: next((type for type in priority_list if type in items.array), None)
