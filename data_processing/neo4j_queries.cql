@@ -19,7 +19,7 @@ ON CREATE SET
   a.type = author.TP_AUTOR,
   a.abnt_name = author.NM_ABNT_AUTOR,
   a.ies_program = author.NM_PROGRAMA_IES,
-  a.prod_count = author.PROD_COUNT,
+  a.prod_count = toInteger(author.PROD_COUNT),
   a.knowledge_area = author.NM_AREA_CONHECIMENTO;
 
 // Criação das entidades 'Production' pelo id da produção
