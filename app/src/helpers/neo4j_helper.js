@@ -27,14 +27,14 @@ function createSession() {
 }
 
 // Helper Functions
-function parseGraphData(records) {
+function parseAuthorsGraphData(records) {
   let nodes = {};
   let links = records.map(r => {
-    let source = r.get("source");
-    let target = r.get("target");
-    nodes[source.id] = (source);
-    nodes[target.id] = (target);
-    return {source: parseInt(source.id), target: parseInt(target.id)}
+    let start = r.get("start");
+    let end = r.get("end");
+    nodes[start.id] = (start);
+    nodes[end.id] = (end);
+    return {source: parseInt(start.id), target: parseInt(end.id)}
   });
 
   nodes = Object.values(nodes).map(node => ({
@@ -47,8 +47,31 @@ function parseGraphData(records) {
   return { nodes, links }
 }
 
+function parseCoAuthorsGraphData(records) {
+  let nodes = {};
+  let links = records.map(r => {
+    const author1 = r.get("author1");
+    const author2 = r.get("author2");
+    const rel = r.get("relationship");
+    nodes[author1.id] = author1;
+    nodes[author2.id] = author2;
+    console.log(r)
+    return {source: parseInt(rel.source), target: parseInt(rel.target), collabs: rel.collabs}
+  });
+
+  nodes = Object.values(nodes).map(node => ({
+    id: parseInt(node.id),
+    name: node.name || node.id,
+    type: node.type,
+    prod_count: node.prod_count && node.prod_count.toNumber()
+  }));
+
+  return { nodes, links }
+}
+
+
 // Queries
-async function query(query) {
+async function runQuery(query) {
   let result
   const session = createSession()
 
@@ -61,17 +84,30 @@ async function query(query) {
     session.close()
   }
 
-  return parseGraphData(result.records)
+  return result.records
 }
 
-export async function testQuery() {
-  const data = await query(`
-  MATCH
-    (a:Author {university: 'UFRGS', ies_program: 'COMPUTAÇÃO'})-[:AUTHOR]->(p:Production)
-  RETURN
-    {id: a.id, name: a.name, type: 'author', prod_count: a.prod_count} as source,
-    {id: p.id, name: p.name, type: 'prod'} as target;
-  `)
-  console.debug(data)
-  return data
+export async function testQueryCoAuthors() {
+  const QUERY = `
+    MATCH
+      path=(a1:Author {university: 'UFRGS', ies_program: 'COMPUTAÇÃO'})-[r:CO_AUTHOR]-(a2:Author {university: 'UFRGS', ies_program: 'COMPUTAÇÃO'})
+    RETURN
+      {id: a1.id, name: a1.name, type: a1.type, prod_count: a1.prod_count} as author1,
+      {id: a2.id, name: a2.name, type: a2.type, prod_count: a2.prod_count} as author2,
+      {source: a1.id, target: a2.id, collabs: r.collaborations} as relationship;
+  `
+
+  return parseCoAuthorsGraphData(await runQuery(QUERY))
+}
+
+export async function testQueryAuthors() {
+  const QUERY = `
+    MATCH
+      (a:Author {university: 'UFRGS', ies_program: 'COMPUTAÇÃO'})-[:AUTHOR]->(p:Production)
+    RETURN
+      {id: a.id, name: a.name, type: a.type, prod_count: a.prod_count} as start,
+      {id: p.id, name: p.name, type: 'prod'} as end;
+  `
+
+  return parseAuthorsGraphData(await runQuery(QUERY))
 }

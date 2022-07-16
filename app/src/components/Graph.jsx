@@ -1,12 +1,12 @@
 import React, {useState, useEffect} from 'react'
-import ForceGraph3D from 'react-force-graph-3d'
-import { testQuery } from '../helpers/neo4j_helper'
+import { ForceGraph3D } from 'react-force-graph'
+import { testQueryCoAuthors } from '../helpers/neo4j_helper'
 
 function Graph() {
   const [data, setData] = useState({nodes: [], links: []})
 
   useEffect(() => {
-    testQuery().then(data => {
+    testQueryCoAuthors().then(data => {
       setData(data)
     })
   }, []);
@@ -17,7 +17,11 @@ function Graph() {
         graphData={data}
         nodeAutoColorBy='type'
         nodeVal='prod_count'
-        enableNodeDrag={false}
+        linkColor='#d2dae2'
+        linkOpacity={0.1}
+        linkWidth='collabs'
+        backgroundColor='#1e272e'
+        enableNodeDrag={true}
       />
     </div>
   )
