@@ -1,7 +1,6 @@
 // IMPORTAÇÃO DE DADOS
 // Recria database
 CREATE OR REPLACE DATABASE vizcolab;
-
 :use vizcolab;
 
 // Contraints para evitar entradas duplicadas
@@ -46,3 +45,12 @@ SET
   p.research_lines = prod.NM_LINHA_PESQUISA,
   p.projects = prod.NM_PROJETO,
   p.knowledge_area = prod.NM_AREA_CONHECIMENTO;
+
+// Cria relações de co-autoria entre autores de uma mesma produção
+// https://towardsdatascience.com/link-prediction-with-neo4j-part-2-predicting-co-authors-using-scikit-learn-78b42356b44c
+MATCH (a1:Author)-[:AUTHOR]->(p:Production)<-[:AUTHOR]-(a2:Author)
+WITH a1, a2, p
+ORDER BY a1
+WITH a1, a2, count(*) AS collaborations
+MERGE (a1)-[coauthor:CO_AUTHOR]-(a2)
+SET coauthor.collaborations = collaborations;
