@@ -9,11 +9,33 @@ import SpriteText from 'three-spritetext'
 function Graph() {
   const [enabledTypes, setEnabledTypes] = useState(Object.keys(authorTypeColorMap))
   const [data, setData] = useState({nodes: [], links: []})
+  const [selectedNode, setSelectedNode] = useState(undefined)
   const fgRef = useRef();
 
   useEffect(() => {
     testQueryCoAuthors().then(data => setData(data))
   }, []);
+
+  useEffect(() => {
+    if (selectedNode) {
+      // Zoom and look-at node
+      const distance = 400
+      const distRatio = 1 + distance/Math.hypot(selectedNode.x, selectedNode.y, selectedNode.z)
+      fgRef.current.cameraPosition(
+        { x: selectedNode.x * distRatio, y: selectedNode.y * distRatio, z: selectedNode.z * distRatio }, // new position
+        selectedNode, // lookAt ({ x, y, z })
+        2000 // ms transition duration
+      )
+    } else {
+      // Reset camera
+      const camera = fgRef.current.camera
+      fgRef.current.cameraPosition(
+        { x: camera.x, y: camera.y, z: camera.z }, // new position
+        undefined, // lookAt
+        2000 // ms transition duration
+      );
+    }
+  }, [selectedNode])
 
   const isNodeVisible = useCallback(node => {
     const nodeType = node.type
@@ -47,6 +69,8 @@ function Graph() {
         enableNodeDrag={false}
         nodeVisibility={isNodeVisible}
         linkVisibility={isLinkVisible}
+        onNodeClick={setSelectedNode}
+        onBackgroundClick={() => setSelectedNode(undefined)}
       />
     </div>
   )
