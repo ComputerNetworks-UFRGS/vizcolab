@@ -1,0 +1,38 @@
+.author-type-overlay {
+  z-index: 1;
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  padding: .8rem;
+  background-color: rgba(52, 73, 94, .5);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border-radius: 10px;
+
+  .type-option {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    cursor: pointer;
+    font-size: 10pt;
+
+    .color-circle {
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      box-shadow: inset -2px -2px 4px rgba(0,0,0,.5);
+    }
+
+    .type-name {
+      font-family: 'Helvetica', Verdana, sans-serif;
+    }
+
+    &.disabled {
+      .type-name {
+        text-decoration: line-through;
+      }
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import './App.css';
+import './App.scss';
 import Graph from './components/Graph';
 
 function App() {

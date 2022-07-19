@@ -1,4 +1,5 @@
 import neo4j from 'neo4j-driver'
+import authorTypeColors from '../config/author_type_colors.json'
 
 // Neo4j Configuration
 const {
@@ -27,6 +28,10 @@ function createSession() {
 }
 
 // Helper Functions
+function getNodeColor(node) {
+  return authorTypeColors[node.type] || '#c8d6e5'
+}
+
 function parseAuthorsGraphData(records) {
   let nodes = {};
   let links = records.map(r => {
@@ -55,7 +60,6 @@ function parseCoAuthorsGraphData(records) {
     const rel = r.get("relationship");
     nodes[author1.id] = author1;
     nodes[author2.id] = author2;
-    console.log(r)
     return {source: parseInt(rel.source), target: parseInt(rel.target), collabs: rel.collabs}
   });
 
@@ -63,12 +67,12 @@ function parseCoAuthorsGraphData(records) {
     id: parseInt(node.id),
     name: node.name || node.id,
     type: node.type,
+    color: getNodeColor(node),
     prod_count: node.prod_count && node.prod_count.toNumber()
   }));
 
   return { nodes, links }
 }
-
 
 // Queries
 async function runQuery(query) {
