@@ -5,6 +5,7 @@ import AuthorTypeOverlay from './AuthorTypeOverlay'
 import authorTypeColorMap from '../config/author_type_colors.json'
 import { useCallback, useRef } from 'react'
 import SpriteText from 'three-spritetext'
+import AuthorInfoOverlay from './AuthorInfoOverlay'
 
 function Graph() {
   const [enabledTypes, setEnabledTypes] = useState(Object.keys(authorTypeColorMap))
@@ -50,7 +51,11 @@ function Graph() {
 
   return (
     <div>
-      <AuthorTypeOverlay enabledTypes={enabledTypes} setEnabledTypes={setEnabledTypes} />
+      <section className='right-panel'>
+        <AuthorTypeOverlay enabledTypes={enabledTypes} setEnabledTypes={setEnabledTypes} />
+        { selectedNode && <AuthorInfoOverlay author={selectedNode} /> }
+      </section>
+
       <ForceGraph3D
         ref={fgRef}
         graphData={data}

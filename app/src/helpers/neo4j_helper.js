@@ -64,11 +64,10 @@ function parseCoAuthorsGraphData(records) {
   });
 
   nodes = Object.values(nodes).map(node => ({
+    ...node,
     id: parseInt(node.id),
-    name: node.name || node.id,
-    type: node.type,
     color: getNodeColor(node),
-    prod_count: node.prod_count && node.prod_count.toNumber()
+    prod_count: parseInt(node.prod_count),
   }));
 
   return { nodes, links }
@@ -94,11 +93,31 @@ async function runQuery(query) {
 export async function testQueryCoAuthors() {
   const QUERY = `
     MATCH
-      path=(a1:Author {university: 'UFRGS', ies_program: 'COMPUTAÇÃO'})-[r:CO_AUTHOR]-(a2:Author {university: 'UFRGS', ies_program: 'COMPUTAÇÃO'})
+      path=(a1:Author {university: 'UFRGS', ies_program: 'COMPUTAÇÃO'})-[r:CO_AUTHOR]-(a2:Author)
     RETURN
-      {id: a1.id, name: a1.name, type: a1.type, prod_count: a1.prod_count} as author1,
-      {id: a2.id, name: a2.name, type: a2.type, prod_count: a2.prod_count} as author2,
-      {source: a1.id, target: a2.id, collabs: r.collaborations} as relationship;
+      {
+        id: a1.id,
+        name: a1.name,
+        type: a1.type,
+        prod_count: a1.prod_count,
+        university: a1.university,
+        ies_program: a1.ies_program,
+        abnt_name: a1.abnt_name
+      } as author1,
+      {
+        id: a2.id,
+        name: a2.name,
+        type: a2.type,
+        prod_count: a2.prod_count,
+        university: a2.university,
+        ies_program: a2.ies_program,
+        abnt_name: a2.abnt_name
+      } as author2,
+      {
+        source: a1.id,
+        target: a2.id, 
+        collabs: r.collaborations
+      } as relationship;
   `
 
   return parseCoAuthorsGraphData(await runQuery(QUERY))
@@ -114,4 +133,20 @@ export async function testQueryAuthors() {
   `
 
   return parseAuthorsGraphData(await runQuery(QUERY))
+}
+
+export async function getAuthorInfo(authorId) {
+  const QUERY = `
+    MATCH
+      (a:Author {id: ${authorId}})
+    RETURN a as author;
+  `
+
+  const records = await runQuery(QUERY)
+
+  if (records.length === 0) {
+    return null
+  } else {
+    return records[0].get('author')
+  }
 }

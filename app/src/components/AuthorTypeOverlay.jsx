@@ -10,6 +10,9 @@ function AuthorTypeOverlay({ enabledTypes, setEnabledTypes }) {
 
   return (
     <div className='author-type-overlay'>
+      <h1>Categorias</h1>
+      <small>Clique em uma categoria para ocultá-la</small>
+      
       {Object.entries(authorTypeColorMap).map(([type, color]) => (
         <div
           key={type}
