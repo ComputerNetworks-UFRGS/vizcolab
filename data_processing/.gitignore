@@ -1,4 +1,5 @@
 datasets
 output
 __pycache__
+sandbox.*
 .ipynb_checkpoints
