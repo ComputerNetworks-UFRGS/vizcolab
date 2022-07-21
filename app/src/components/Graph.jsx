@@ -6,6 +6,7 @@ import authorTypeColorMap from '../config/author_type_colors.json'
 import { useCallback, useRef } from 'react'
 import SpriteText from 'three-spritetext'
 import AuthorInfoOverlay from './AuthorInfoOverlay'
+import { forceLink, forceManyBody } from 'd3-force-3d'
 
 function Graph() {
   const [enabledTypes, setEnabledTypes] = useState(Object.keys(authorTypeColorMap))
@@ -15,6 +16,17 @@ function Graph() {
 
   useEffect(() => {
     testQueryCoAuthors().then(data => setData(data))
+
+    fgRef.current.d3Force('link',
+      forceLink()
+        .strength(0.2)
+    )
+    fgRef.current.d3Force('charge',
+      forceManyBody()
+        .strength(-180)
+        .distanceMin(0)
+        .distanceMax(600)
+    )
   }, []);
 
   useEffect(() => {
@@ -25,7 +37,7 @@ function Graph() {
       fgRef.current.cameraPosition(
         { x: selectedNode.x * distRatio, y: selectedNode.y * distRatio, z: selectedNode.z * distRatio }, // new position
         selectedNode, // lookAt ({ x, y, z })
-        2000 // ms transition duration
+        1000 // ms transition duration
       )
     } else {
       // Reset camera
@@ -33,7 +45,7 @@ function Graph() {
       fgRef.current.cameraPosition(
         { x: camera.x, y: camera.y, z: camera.z }, // new position
         undefined, // lookAt
-        2000 // ms transition duration
+        1000 // ms transition duration
       );
     }
   }, [selectedNode])
@@ -60,7 +72,7 @@ function Graph() {
         ref={fgRef}
         graphData={data}
         nodeVal='prod_count'
-        nodeRelSize={3}
+        nodeOpacity={0.9}
         nodeThreeObject={node => { 
           const sprite = new SpriteText(node.name);
           sprite.textHeight = 3;
@@ -68,10 +80,10 @@ function Graph() {
         }} 
         nodeThreeObjectExtend={true}
         linkColor='#d2dae2'
-        linkOpacity={0.05}
+        linkOpacity={0.1}
         linkWidth='collabs'
         backgroundColor='#1e272e'
-        enableNodeDrag={false}
+        enableNodeDrag={true}
         nodeVisibility={isNodeVisible}
         linkVisibility={isLinkVisible}
         onNodeClick={setSelectedNode}
