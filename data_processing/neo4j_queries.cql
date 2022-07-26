@@ -54,3 +54,20 @@ ORDER BY a1
 WITH a1, a2, count(*) AS collaborations
 MERGE (a1)-[coauthor:CO_AUTHOR]-(a2)
 SET coauthor.collaborations = collaborations;
+
+// Cria entidades universidade
+MATCH (a:Author)
+WITH a.university as university, sum(a.prod_count) AS total_prod_count
+MERGE (u:University { name: university, prod_count: total_prod_count });
+
+// Cria relação author -> university
+MATCH (a:Author)
+MATCH (u:University { name: a.university })
+MERGE (a)-[:WORKS_AT]->(u);
+
+// Cria relação de colaboração entre universidades
+MATCH (u1:University)<-[:WORKS_AT]-(:Author)-[c:CO_AUTHOR]-(:Author)-[:WORKS_AT]->(u2:University)
+WHERE u1.name <> u2.name
+WITH u1, u2, sum(c.collaborations) AS collabs
+MERGE (u1)-[:COLLABORATES_WITH {collabs: collabs}]-(u2);
+
