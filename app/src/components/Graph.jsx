@@ -105,7 +105,7 @@ function Graph() {
       
       <section className='right-panel'>
         <AuthorTypeOverlay enabledTypes={enabledTypes} setEnabledTypes={setEnabledTypes} />
-        { selectedAuthor && <AuthorInfoOverlay author={selectedAuthor} authorData={authorData}  selectAuthor={setSelectedAuthor} /> }
+        { selectedAuthor && <AuthorInfoOverlay author={selectedAuthor} authorData={authorData} selectAuthor={setSelectedAuthor} /> }
       </section>
 
       <ForceGraph3D

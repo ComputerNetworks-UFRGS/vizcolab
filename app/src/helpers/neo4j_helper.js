@@ -57,7 +57,7 @@ function parseAuthorGraphData(records) {
     const rel = r.get("relationship");
     nodes[author1.id] = author1;
     nodes[author2.id] = author2;
-    return {source: parseInt(rel.source), target: parseInt(rel.target), collabs: rel.collabs}
+    return {source: parseInt(rel.source), target: parseInt(rel.target), collabs: parseInt(rel.collabs)}
   });
 
   nodes = Object.values(nodes).map(node => ({

@@ -1,10 +1,13 @@
 import React from 'react'
 
 function AuthorInfoOverlay({ author, authorData, selectAuthor }) {
-  const coAuthors = authorData && authorData.nodes
-    .filter(node => node.id !== author.id)
-    .sort((a, b) => b.prod_count - a.prod_count)
+  const topCollaborators = (authorData && authorData.links
+    .sort((a, b) => b.collabs - a.collabs)
     .slice(0, 5)
+    .map(link => ({
+        author: authorData.nodes.find(node => node.id === (link.target.id || link.target)),
+        collabs: link.collabs
+    }))) || []
 
   return (
     <div className='author-info-overlay'>
@@ -33,20 +36,20 @@ function AuthorInfoOverlay({ author, authorData, selectAuthor }) {
             <span className='value'>{parseInt(author.prod_count) || '-'}</span>
           </div>
         </div>
-        {coAuthors && coAuthors.length > 0 &&
-          <div className='connections'>
-            <h2>PRINCIPAIS COLABORADORES</h2>
-            { coAuthors.map(coAuthor => (
-              <div className='line'>
+        <div className='connections'>
+          <h2>PRINCIPAIS COLABORADORES</h2>
+          { topCollaborators.length > 0 &&
+            topCollaborators.map(({author, collabs}) => (
+              author && 
+              <div className='line' key={author.id}>
                 <div>
-                  <div className='name' onClick={() => selectAuthor(coAuthor)}>{coAuthor.name}</div>
-                  <div className='university'>{coAuthor.university}</div>
+                  <div className='name' onClick={() => selectAuthor(author)}>{author.name}</div>
+                  <div className='university'>{author.university}</div>
                 </div>
-                <div className='collabs'>{coAuthor.prod_count}</div>
+                <div className='collabs'>{collabs}</div>
               </div>
             ))}
-          </div>
-        }
+        </div>
     </div>
   )
 }
