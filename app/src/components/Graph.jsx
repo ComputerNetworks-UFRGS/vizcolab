@@ -21,6 +21,7 @@ function Graph() {
   const [data, setData] = useState({nodes: [], links: []})
   const [authorData, setAuthorData] = useState(undefined)
   const [selectedAuthor, setSelectedAuthor] = useState(undefined)
+  const [windowDimensions, setWindowDimensions] = useState({width: window.innerWidth, height: window.innerHeight})
   const [isLoading, setIsLoading] = useState(true)
   const fgRef = useRef();
 
@@ -45,6 +46,10 @@ function Graph() {
       forceCenter()
         .strength(1)
     )
+
+    window.addEventListener('resize', () => {
+      setWindowDimensions({width: window.innerWidth, height: window.innerHeight})
+    })
   }, []);
 
   useEffect(() => {
@@ -92,7 +97,7 @@ function Graph() {
   }
 
   return (
-    <div>
+    <section className='graph'>
       { isLoading &&
         <div className='graph-loading'>
           <FontAwesomeIcon icon={faSpinner} spin />
@@ -110,6 +115,8 @@ function Graph() {
 
       <ForceGraph3D
         ref={fgRef}
+        width={windowDimensions.width}
+        height={windowDimensions.height - 50} // 50 is the height of the header
         graphData={authorData || data}
         nodeVal='prod_count'
         nodeLabel={node => `${node.name} (${node.university})`}
@@ -143,7 +150,7 @@ function Graph() {
         onNodeClick={setSelectedAuthor}
         onBackgroundClick={() => setSelectedAuthor(undefined)}
       />
-    </div>
+    </section>
   )
 }
 
