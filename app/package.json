@@ -17,6 +17,7 @@
     "react-force-graph": "^1.41.12",
     "react-force-graph-3d": "^1.21.12",
     "react-scripts": "5.0.1",
+    "react-widgets": "^5.8.4",
     "sass": "^1.53.0",
     "three": "^0.142.0",
     "three-spritetext": "^1.6.5",

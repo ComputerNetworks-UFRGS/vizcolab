@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react'
 import { ForceGraph3D } from 'react-force-graph'
-import { getUniversityPrograms } from '../helpers/neo4j_helper'
+import { getUniversityProgramsCollabs } from '../helpers/neo4j_helper'
 import AuthorTypeOverlay from './AuthorTypeOverlay'
 import authorTypeColorMap from '../config/author_type_colors.json'
 import { useRef } from 'react'
@@ -15,7 +15,7 @@ function Graph() {
   const fgRef = useRef();
 
   useEffect(() => {
-    getUniversityPrograms('UFRGS').then(data => setData(data))
+    getUniversityProgramsCollabs('UFRGS').then(data => setData(data))
 
     fgRef.current.d3Force('link',
       forceLink()

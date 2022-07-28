@@ -9,6 +9,7 @@ import AuthorInfoOverlay from './AuthorInfoOverlay'
 import { forceLink, forceManyBody, forceCenter } from 'd3-force-3d'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { GlobalContext } from '../App'
 import * as THREE from 'three'
 
 // Calcula o raio de uma esfera com base no volume
@@ -25,13 +26,9 @@ function Graph() {
   const [isLoading, setIsLoading] = useState(true)
   const fgRef = useRef();
 
-  useEffect(() => {
-    getUniversityProgramCoAuthors('UFRGS', 'COMPUTAÇÃO')
-      .then(data => {
-        setData(data)
-        setIsLoading(false)
-      })
+  const { university, programs } = React.useContext(GlobalContext);
 
+  useEffect(() => {
     fgRef.current.d3Force('link',
       forceLink()
         .strength(0.2)
@@ -51,6 +48,14 @@ function Graph() {
       setWindowDimensions({width: window.innerWidth, height: window.innerHeight})
     })
   }, []);
+
+  useEffect(() => {
+    getUniversityProgramCoAuthors(university, programs[0])
+      .then(data => {
+        setData(data)
+        setIsLoading(false)
+      })
+  }, [university, programs])
 
   useEffect(() => {
     if (selectedAuthor) {

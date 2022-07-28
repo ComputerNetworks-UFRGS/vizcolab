@@ -1,3 +1,13 @@
+@use "react-widgets/scss/styles.scss" with (
+  $components: (
+    'Combobox',
+    'Multiselect'
+  ),
+
+  $widget-font-size: 12px,
+  $input-height: 2em
+);
+
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+SC:wght@400;700&display=swap');
 
 $overlay-bg-color: rgba(52, 73, 94, .7);
@@ -9,6 +19,7 @@ $overlay-text-color: #ecf0f1;
   .header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 0 1rem;
     height: 50px;
     background-color: #ecf0f1;
@@ -23,6 +34,26 @@ $overlay-text-color: #ecf0f1;
 
       b {
         font-weight: 700;
+      }
+    }
+  }
+
+  .program-selector {
+    display: flex;
+    gap: 1rem;
+
+    .selector {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    
+      .label {
+        font-size: 7.5pt;
+        color: black;
+      }
+
+      &.program {
+        min-width: 20rem;
       }
     }
   }

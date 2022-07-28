@@ -135,7 +135,7 @@ export async function getUniversityProgramAuthors(university, ies_program) {
   return parseData(await runQuery(QUERY))
 }
 
-export async function getUniversityPrograms(university) {
+export async function getUniversityProgramsCollabs(university) {
   function parseData(records) {
     let nodes = {};
     let links = records.map(r => {
@@ -202,4 +202,26 @@ export async function getAuthorData(author_id) {
   `
 
   return parseAuthorGraphData(await runQuery(QUERY))
+}
+
+export async function getUniversities() {
+  const QUERY = `
+    MATCH (u:University)
+    WITH u.name as university
+    ORDER BY university
+    RETURN DISTINCT university;
+  `
+
+  return (await runQuery(QUERY)).map(r => r.get("university"));
+}
+
+export async function getUniversityPrograms(university) {
+  const QUERY = `
+    MATCH (a:Author {university: "${university}"})
+    WITH a.ies_program as program
+    ORDER BY program
+    RETURN DISTINCT program;
+  `
+
+  return (await runQuery(QUERY)).map(r => r.get("program"));
 }
