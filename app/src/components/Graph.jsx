@@ -50,7 +50,7 @@ function Graph() {
   }, []);
 
   useEffect(() => {
-    getUniversityProgramCoAuthors(university, programs[0])
+    getUniversityProgramCoAuthors(university, programs)
       .then(data => {
         setData(data)
         setIsLoading(false)

@@ -70,10 +70,12 @@ function parseAuthorGraphData(records) {
   return { nodes, links }
 }
 
-export async function getUniversityProgramCoAuthors(university, ies_program) {
+export async function getUniversityProgramCoAuthors(university, ies_programs) {
   const QUERY = `
     MATCH
-      (a1:Author {university: "${university}", ies_program: "${ies_program}"})-[r:CO_AUTHOR]-(a2:Author)
+      (a1:Author {university: "${university}"})-[r:CO_AUTHOR]-(a2:Author)
+    WHERE 
+      a1.ies_program in ["${ies_programs.join('","')}"]
     RETURN
       {
         id: a1.id,
