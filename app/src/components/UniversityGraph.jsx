@@ -1,15 +1,14 @@
 import React, {useState, useEffect} from 'react'
 import { ForceGraph3D } from 'react-force-graph'
-import { getUniversityProgramsData } from '../helpers/neo4j_helper'
+import { getUniversitiesData } from '../helpers/neo4j_helper'
 import { useRef } from 'react'
 import SpriteText from 'three-spritetext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowLeft, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { GlobalContext } from '../App'
-import { 
-  sphereRadius, setZoomLevel, setLinkForce, setChargeForce, setCenterForce,
+import {
+  sphereRadius, setZoomLevel, setLinkForce, setChargeForce, setCenterForce
 } from '../helpers/3d_graph_helper'
-
 import * as THREE from 'three'
 
 function Graph() {
@@ -18,38 +17,28 @@ function Graph() {
   const [isLoading, setIsLoading] = useState(true)
   const fgRef = useRef();
 
-  const { university, setUniversity, setPrograms } = React.useContext(GlobalContext);
+  const { setUniversity } = React.useContext(GlobalContext);
 
   useEffect(() => {
     setLinkForce(fgRef.current, 0.05);
-    setChargeForce(fgRef.current, -500);
+    setChargeForce(fgRef.current, -1500);
     setCenterForce(fgRef.current, 1);
 
-    setZoomLevel(fgRef.current, 1000);
+    setZoomLevel(fgRef.current, 3500);
 
     window.addEventListener('resize', () => {
       setWindowDimensions({width: window.innerWidth, height: window.innerHeight})
     })
-  }, []);
 
-  useEffect(() => {
-    getUniversityProgramsData(university)
+    getUniversitiesData()
       .then(data => {
         setData(data)
         setIsLoading(false)
-    })
-  }, [university])
-
-  const handleBackButton = () => {
-    setUniversity(null)
-  }
+      })
+  }, []);
 
   return (
     <section className='graph'>
-        <div className='back-button' onClick={handleBackButton}>
-          <FontAwesomeIcon icon={faArrowLeft}/>
-        </div>
-
       { isLoading &&
         <div className='graph-loading'>
           <FontAwesomeIcon icon={faSpinner} spin />
@@ -65,7 +54,7 @@ function Graph() {
         nodeLabel='name'
         nodeAutoColorBy='name'
         nodeThreeObject={node => { 
-            const radius = sphereRadius(node.prod_count) * 10;
+            const radius = sphereRadius(node.prod_count) * 3;
             const group = new THREE.Group();
             const geometry = new THREE.SphereGeometry(radius);
             const material = new THREE.MeshLambertMaterial({
@@ -85,9 +74,9 @@ function Graph() {
         }} 
         linkColor='#d2dae2'
         linkOpacity={0.2}
-        linkWidth={node => node.collabs_count / 30}
+        linkWidth={node => node.collabs_count / 15}
         backgroundColor='#1e272e'
-        onNodeClick={p => setPrograms([p.name])}
+        onNodeClick={u => setUniversity(u.name)}
         enableNodeDrag={true}
       />
     </section>

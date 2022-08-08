@@ -57,13 +57,13 @@ function parseAuthorGraphData(records) {
     const rel = r.get("relationship");
     nodes[author1.id] = author1;
     nodes[author2.id] = author2;
-    return {source: parseInt(rel.source), target: parseInt(rel.target), collabs: parseInt(rel.collabs)}
+    return {source: parseInt(rel.source), target: parseInt(rel.target), collabs_count: parseInt(rel.collabs_count)}
   });
 
   nodes = Object.values(nodes).map(node => ({
     ...node,
     id: parseInt(node.id),
-    color: getNodeColorByType(node),
+    // color: getNodeColorByType(node),
     prod_count: parseInt(node.prod_count),
   }));
 
@@ -98,7 +98,7 @@ export async function getUniversityProgramCoAuthors(university, ies_programs) {
       {
         source: a1.id,
         target: a2.id, 
-        collabs: r.collaborations
+        collabs_count: r.collabs_count
       } as relationship;
   `
 
@@ -137,7 +137,7 @@ export async function getUniversityProgramAuthors(university, ies_program) {
   return parseData(await runQuery(QUERY))
 }
 
-export async function getUniversityProgramsCollabs(university) {
+export async function getUniversityProgramsData(university) {
   function parseData(records) {
     let nodes = {};
     let links = records.map(r => {
@@ -145,7 +145,7 @@ export async function getUniversityProgramsCollabs(university) {
       const program2 = r.get("p2");
       nodes[program1.name] = {id: program1.name, name: program1.name, prod_count: parseInt(program1.prod_count), type: 'program', opacity: 0.1};
       nodes[program2.name] = {id: program2.name, name: program2.name, prod_count: parseInt(program2.prod_count), type: 'program', opacity: 0.1};
-      return {source: program1.name, target: program2.name, collabs: parseInt(r.get("collabs"))/20}
+      return {source: program1.name, target: program2.name, collabs_count: parseInt(r.get("collabs_count"))}
     });
 
     nodes = Object.values(nodes).map(node => node);
@@ -154,20 +154,14 @@ export async function getUniversityProgramsCollabs(university) {
   }
 
   const QUERY = `
-    MATCH (a1:Author {university: "${university}"})-[r:CO_AUTHOR]-(a2:Author {university: "${university}"})
-    WHERE a1.ies_program <> a2.ies_program
+    MATCH (a1:Author {university: "UFRGS"})-[r:CO_AUTHOR]-(a2:Author {university: "UFRGS"})
+    WHERE a1.ies_program > a2.ies_program and r.collabs_count > 1
     WITH
-      {
-        name: a1.ies_program,
-        prod_count: sum(a1.prod_count)
-      } as p1,
-      {
-        name: a2.ies_program,
-        prod_count: sum(a2.prod_count)
-      } as p2,
-      sum(r.collaborations) as collabs
-    ORDER by collabs desc
-    RETURN p1, p2, collabs;
+        { name: a1.ies_program, prod_count: sum(a1.prod_count) } as p1,
+        { name: a2.ies_program, prod_count: sum(a2.prod_count) } as p2,
+        sum(r.collabs_count) as collabs_count
+    ORDER by collabs_count desc
+    RETURN p1, p2, collabs_count;
   `
 
   return parseData(await runQuery(QUERY))
@@ -199,14 +193,14 @@ export async function getAuthorData(author_id) {
     {
       source: a1.id,
       target: a2.id, 
-      collabs: r.collaborations
+      collabs_count: r.collabs_count
     } as relationship;
   `
 
   return parseAuthorGraphData(await runQuery(QUERY))
 }
 
-export async function getUniversities() {
+export async function getUniversitiesList() {
   const QUERY = `
     MATCH (u:University)
     WITH u.name as university
@@ -217,7 +211,7 @@ export async function getUniversities() {
   return (await runQuery(QUERY)).map(r => r.get("university"));
 }
 
-export async function getUniversityPrograms(university) {
+export async function getUniversityProgramsList(university) {
   const QUERY = `
     MATCH (a:Author {university: "${university}"})
     WITH a.ies_program as program
@@ -226,4 +220,53 @@ export async function getUniversityPrograms(university) {
   `
 
   return (await runQuery(QUERY)).map(r => r.get("program"));
+}
+
+export async function getUniversitiesData() {
+  function parseData(records) {
+    let nodes = {};
+    let links = records.map(r => {
+      const u1 = r.get("u1").properties;
+      const u2 = r.get("u2").properties;
+      const collabs_count = r.get('collabs_count').toNumber();
+      nodes[u1.name] = u1;
+      nodes[u2.name] = u2;
+      return {source: u1.name, target: u2.name, collabs_count: collabs_count}
+    });
+  
+    nodes = Object.values(nodes).map(node => ({
+      ...node,
+      prod_count: parseInt(node.prod_count),
+    }));
+  
+    return { nodes, links }
+  }
+
+  const QUERY_HIGHEST_COLLABS = `
+    MATCH (u1:University)-[r:COLLABORATES_WITH]->(u2:University)
+    WITH u1, u2, r
+    ORDER BY r.collabs_count DESC
+    RETURN u1, u2, r.collabs_count as collabs_count
+    LIMIT 300;
+  `
+
+  const QUERY_IMPORTANT_COLLABS= `
+    MATCH (u1:University)-[r:COLLABORATES_WITH]->(u2:University)
+    WITH u1, u2, r, (toFloat(r.collabs_count) / u1.prod_count) as u1_collab_ratio, (toFloat(r.collabs_count) / u2.prod_count) as u2_collab_ratio
+    WHERE u1_collab_ratio > 0.05 or u2_collab_ratio > 0.05
+    WITH u1, u2, r
+    ORDER BY r.collabs_count DESC
+    RETURN u1, u2, r.collabs_count as collabs_count
+    LIMIT 500;
+  `
+
+  const QUERY_TOP_COLLABS = `
+    MATCH (u1:University)-[r:COLLABORATES_WITH]-(u2:University)
+    WITH u1, u2, r ORDER BY r.collabs_count DESC
+    WITH u1, collect({u2: u2, count: r.collabs_count}) as collabs
+    UNWIND collabs[0..3] as collab
+    RETURN u1, collab.u2 as u2, collab.count as collabs_count;
+  `
+
+  return parseData(await runQuery(QUERY_TOP_COLLABS));
 }

@@ -1,18 +1,34 @@
 import './App.scss';
 import React from 'react';
-import Graph from './components/Graph';
+import AuthorGraph from './components/AuthorGraph';
+import UniversityGraph from './components/UniversityGraph';
+import ProgramGraph from './components/ProgramGraph';
 import Header from './components/Header';
 
 export const GlobalContext = React.createContext();
 
 function App() {
-  const [university, setUniversity] = React.useState('UFRGS');
-  const [programs, setPrograms] = React.useState(['COMPUTAÇÃO']);
+  const [university, setUniversity] = React.useState(undefined);
+  const [programs, setPrograms] = React.useState([]);
+
+  const graphLevel = university ? programs.length > 0 ? 'authors' : 'programs' : 'universities';
+
+  function Graph() {
+    switch (graphLevel) {
+      case 'authors':
+        return <AuthorGraph/>
+      case 'programs':
+        return <ProgramGraph/>
+      case 'universities':
+      default:
+        return <UniversityGraph/>
+    }
+  }
 
   return (
     <GlobalContext.Provider value={{university, setUniversity, programs, setPrograms}}>
       <div className="App">
-        <Header></Header>
+        <Header/>
         <Graph/>
       </div>
     </GlobalContext.Provider>

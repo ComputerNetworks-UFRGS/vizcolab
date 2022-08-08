@@ -6,18 +6,16 @@ import authorTypeColorMap from '../config/author_type_colors.json'
 import { useCallback, useRef } from 'react'
 import SpriteText from 'three-spritetext'
 import AuthorInfoOverlay from './AuthorInfoOverlay'
-import { forceLink, forceManyBody, forceCenter } from 'd3-force-3d'
+
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { GlobalContext } from '../App'
+import {
+  sphereRadius, setZoomLevel, setLinkForce, setChargeForce, setCenterForce,
+} from '../helpers/3d_graph_helper'
 import * as THREE from 'three'
 
-// Calcula o raio de uma esfera com base no volume
-function sphereRadius(volume) {
-  return Math.cbrt(3*volume/(4*Math.PI))
-}
-
-function Graph() {
+function AuthorGraph() {
   const [enabledTypes, setEnabledTypes] = useState(Object.keys(authorTypeColorMap))
   const [data, setData] = useState({nodes: [], links: []})
   const [authorData, setAuthorData] = useState(undefined)
@@ -26,23 +24,12 @@ function Graph() {
   const [isLoading, setIsLoading] = useState(true)
   const fgRef = useRef();
 
-  const { university, programs } = React.useContext(GlobalContext);
+  const { university, programs, setPrograms } = React.useContext(GlobalContext);
 
   useEffect(() => {
-    fgRef.current.d3Force('link',
-      forceLink()
-        .strength(0.2)
-    )
-    fgRef.current.d3Force('charge',
-      forceManyBody()
-        .strength(-180)
-        .distanceMin(0)
-        .distanceMax(600)
-    )
-    fgRef.current.d3Force('center',
-      forceCenter()
-        .strength(1)
-    )
+    setLinkForce(fgRef.current, 0.2);
+    setChargeForce(fgRef.current, -500, 600);
+    setCenterForce(fgRef.current, 1);
 
     window.addEventListener('resize', () => {
       setWindowDimensions({width: window.innerWidth, height: window.innerHeight})
@@ -52,6 +39,7 @@ function Graph() {
   useEffect(() => {
     getUniversityProgramCoAuthors(university, programs)
       .then(data => {
+        console.debug('data', data)
         setData(data)
         setIsLoading(false)
       })
@@ -65,24 +53,13 @@ function Graph() {
         setIsLoading(false)
       });
       
-      // Zoom and look-at node
-      const distance = 300
-      const distRatio = 1 + distance/Math.hypot(selectedAuthor.x, selectedAuthor.y, selectedAuthor.z)
-      fgRef.current.cameraPosition(
-        { x: selectedAuthor.x * distRatio, y: selectedAuthor.y * distRatio, z: selectedAuthor.z * distRatio }, // new position
-        { x: 0, y: 0, z: 0 }, // lookAt ({ x, y, z })
-        0 // ms transition duration
-      )
+      // Set the camera to look at the selected author
+      setZoomLevel(fgRef.current, 500)
     } else {
       setAuthorData(undefined);
 
       // Reset camera
-      const camera = fgRef.current.camera
-      fgRef.current.cameraPosition(
-        { x: camera.x, y: camera.y, z: camera.z }, // new position
-        undefined, // lookAt
-        0 // ms transition duration
-      );
+      setZoomLevel(fgRef.current, 1000)
     }
   }, [selectedAuthor])
 
@@ -98,7 +75,11 @@ function Graph() {
   }, [enabledTypes])
 
   const handleBackButton = () => {
-    if (selectedAuthor) setSelectedAuthor(undefined)
+    if (selectedAuthor)
+      setSelectedAuthor(null)
+    else {
+      setPrograms([])
+    }
   }
 
   return (
@@ -108,10 +89,9 @@ function Graph() {
           <FontAwesomeIcon icon={faSpinner} spin />
         </div> }
 
-      { selectedAuthor && 
-        <div className='back-button' onClick={handleBackButton}>
-          <FontAwesomeIcon icon={faArrowLeft}/>
-        </div> }
+      <div className='back-button' onClick={handleBackButton}>
+        <FontAwesomeIcon icon={faArrowLeft}/>
+      </div>
       
       <section className='right-panel'>
         <AuthorTypeOverlay enabledTypes={enabledTypes} setEnabledTypes={setEnabledTypes} />
@@ -138,8 +118,8 @@ function Graph() {
           const sphere = new THREE.Mesh( geometry, material );
 
           const sprite = new SpriteText(node.name);
-          sprite.textHeight = 3;
-          sprite.position.set(0, -(radius + 5), 0);
+          sprite.textHeight = 0.5 * radius;
+          sprite.position.set(0, -(2 * radius), 0);
 
           group.add(sphere);
           group.add(sprite);
@@ -147,7 +127,7 @@ function Graph() {
         }} 
         linkColor='#d2dae2'
         linkOpacity={selectedAuthor ? 0.2 : 0.1}
-        linkWidth='collabs'
+        linkWidth='collabs_count'
         backgroundColor='#1e272e'
         enableNodeDrag={true}
         nodeVisibility={isNodeVisible}
@@ -159,4 +139,4 @@ function Graph() {
   )
 }
 
-export default Graph
+export default AuthorGraph

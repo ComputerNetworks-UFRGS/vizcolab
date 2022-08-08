@@ -1,7 +1,7 @@
 import React from 'react'
 import { useEffect } from 'react';
 import { Combobox, Multiselect } from 'react-widgets';
-import { getUniversities, getUniversityPrograms } from '../helpers/neo4j_helper';
+import { getUniversitiesList, getUniversityProgramsList } from '../helpers/neo4j_helper';
 import { GlobalContext } from '../App';
 
 function ProgramSelector() {
@@ -11,40 +11,43 @@ function ProgramSelector() {
   const { university, setUniversity, programs, setPrograms } = React.useContext(GlobalContext);
 
   useEffect(() => {
-    getUniversities().then(data => {
+    getUniversitiesList().then(data => {
       setUniversitiesList(data);
     })
   }, []);
 
   useEffect(() => {
     if (university) {
-      getUniversityPrograms(university).then(data => {
+      getUniversityProgramsList(university).then(data => {
         setProgramsList(data);
-        setPrograms([data[0]]);
       })
     }
-  }, [university]);
+  }, [university, setPrograms]);
 
   return (
     <div className='program-selector'>
-      <div className='selector ufrgs'>
+      <div className='selector university'>
           <span className='label'>UNIVERSIDADE</span>
           <Combobox
+            placeholder='Selecione uma universidade'
             busy={universitiesList.length === 0}
             value={university}
             onChange={setUniversity}
             data={universitiesList}
           />
         </div>
-        <div className='selector program'>
-          <span className='label'>PROGRAMAS</span>
-          <Multiselect
-            busy={programsList.length === 0}
-            value={programs}
-            onChange={setPrograms}
-            data={programsList}
-          />
-        </div>
+        { university &&
+          <div className='selector program'>
+            <span className='label'>PROGRAMAS</span>
+            <Multiselect
+              placeholder='Selecione os programas'
+              busy={programsList.length === 0}
+              value={programs}
+              onChange={setPrograms}
+              data={programsList}
+            />
+          </div>
+        }
     </div>
   )
 }
