@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react'
 import { ForceGraph3D } from 'react-force-graph'
-import { getUniversityProgramCoAuthors, getAuthorData } from '../helpers/neo4j_helper'
+import { getAuthorsCollabs, getAuthorData } from '../helpers/neo4j_helper'
 import AuthorTypeOverlay from './AuthorTypeOverlay'
 import authorTypeColorMap from '../config/author_type_colors.json'
 import { useCallback, useRef } from 'react'
@@ -37,9 +37,8 @@ function AuthorGraph() {
   }, []);
 
   useEffect(() => {
-    getUniversityProgramCoAuthors(university, programs)
+    getAuthorsCollabs(university, programs, 3)
       .then(data => {
-        console.debug('data', data)
         setData(data)
         setIsLoading(false)
       })
@@ -107,7 +106,7 @@ function AuthorGraph() {
         nodeLabel={node => `${node.name} (${node.university})`}
         nodeAutoColorBy='university'
         nodeThreeObject={node => { 
-          const radius = sphereRadius(node.prod_count) * 6;
+          const radius = sphereRadius(node.prod_count) *  10;
           const group = new THREE.Group();
           const geometry = new THREE.SphereGeometry(radius);
           const material = new THREE.MeshLambertMaterial({

@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react'
 import { ForceGraph3D } from 'react-force-graph'
-import { getUniversityProgramsData } from '../helpers/neo4j_helper'
+import { getProgramsCollabs } from '../helpers/neo4j_helper'
 import { useRef } from 'react'
 import SpriteText from 'three-spritetext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -33,7 +33,7 @@ function Graph() {
   }, []);
 
   useEffect(() => {
-    getUniversityProgramsData(university)
+    getProgramsCollabs(university)
       .then(data => {
         setData(data)
         setIsLoading(false)
@@ -60,12 +60,11 @@ function Graph() {
         width={windowDimensions.width}
         height={windowDimensions.height - 50} // 50 is the height of the header
         graphData={data}
-        nodeId='name'
         nodeVal='prod_count'
         nodeLabel='name'
         nodeAutoColorBy='name'
         nodeThreeObject={node => { 
-            const radius = sphereRadius(node.prod_count) * 10;
+            const radius = sphereRadius(node.prod_count) * 5;
             const group = new THREE.Group();
             const geometry = new THREE.SphereGeometry(radius);
             const material = new THREE.MeshLambertMaterial({
@@ -85,7 +84,7 @@ function Graph() {
         }} 
         linkColor='#d2dae2'
         linkOpacity={0.2}
-        linkWidth={node => node.collabs_count / 30}
+        linkWidth={node => node.collabs_count / 10}
         backgroundColor='#1e272e'
         onNodeClick={p => setPrograms([p.name])}
         enableNodeDrag={true}

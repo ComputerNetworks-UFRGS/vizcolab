@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react'
 import { ForceGraph3D } from 'react-force-graph'
-import { getUniversitiesData } from '../helpers/neo4j_helper'
+import { getUniversitiesCollabs } from '../helpers/neo4j_helper'
 import { useRef } from 'react'
 import SpriteText from 'three-spritetext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -30,7 +30,7 @@ function Graph() {
       setWindowDimensions({width: window.innerWidth, height: window.innerHeight})
     })
 
-    getUniversitiesData()
+    getUniversitiesCollabs()
       .then(data => {
         setData(data)
         setIsLoading(false)
@@ -49,7 +49,6 @@ function Graph() {
         width={windowDimensions.width}
         height={windowDimensions.height - 50} // 50 is the height of the header
         graphData={data}
-        nodeId='name'
         nodeVal='prod_count'
         nodeLabel='name'
         nodeAutoColorBy='name'
@@ -74,7 +73,7 @@ function Graph() {
         }} 
         linkColor='#d2dae2'
         linkOpacity={0.2}
-        linkWidth={node => node.collabs_count / 15}
+        linkWidth={node => node.collabs_count / 50}
         backgroundColor='#1e272e'
         onNodeClick={u => setUniversity(u.name)}
         enableNodeDrag={true}
