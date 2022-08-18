@@ -37,7 +37,7 @@ function AuthorGraph() {
   }, []);
 
   useEffect(() => {
-    getAuthorsCollabs(university, programs, 3)
+    getAuthorsCollabs(university, programs, 2)
       .then(data => {
         setData(data)
         setIsLoading(false)
@@ -106,7 +106,7 @@ function AuthorGraph() {
         nodeLabel={node => `${node.name} (${node.university})`}
         nodeAutoColorBy='university'
         nodeThreeObject={node => { 
-          const radius = sphereRadius(node.prod_count) *  10;
+          const radius = sphereRadius(node.prod_count) * 7;
           const group = new THREE.Group();
           const geometry = new THREE.SphereGeometry(radius);
           const material = new THREE.MeshLambertMaterial({
@@ -126,7 +126,7 @@ function AuthorGraph() {
         }} 
         linkColor='#d2dae2'
         linkOpacity={selectedAuthor ? 0.2 : 0.1}
-        linkWidth='collabs_count'
+        linkWidth={node => node.collabs_count / 5}
         backgroundColor='#1e272e'
         enableNodeDrag={true}
         nodeVisibility={isNodeVisible}

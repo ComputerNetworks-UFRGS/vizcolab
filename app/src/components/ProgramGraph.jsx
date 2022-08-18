@@ -64,7 +64,7 @@ function Graph() {
         nodeLabel='name'
         nodeAutoColorBy='name'
         nodeThreeObject={node => { 
-            const radius = sphereRadius(node.prod_count) * 5;
+            const radius = sphereRadius(node.prod_count) * 4;
             const group = new THREE.Group();
             const geometry = new THREE.SphereGeometry(radius);
             const material = new THREE.MeshLambertMaterial({
@@ -84,7 +84,7 @@ function Graph() {
         }} 
         linkColor='#d2dae2'
         linkOpacity={0.2}
-        linkWidth={node => node.collabs_count / 10}
+        linkWidth={node => node.collabs_count / 15}
         backgroundColor='#1e272e'
         onNodeClick={p => setPrograms([p.name])}
         enableNodeDrag={true}

@@ -21,7 +21,7 @@ function Graph() {
 
   useEffect(() => {
     setLinkForce(fgRef.current, 0.05);
-    setChargeForce(fgRef.current, -1500);
+    setChargeForce(fgRef.current, -500);
     setCenterForce(fgRef.current, 1);
 
     setZoomLevel(fgRef.current, 3500);
@@ -53,7 +53,7 @@ function Graph() {
         nodeLabel='name'
         nodeAutoColorBy='name'
         nodeThreeObject={node => { 
-            const radius = sphereRadius(node.prod_count) * 3;
+            const radius = sphereRadius(node.prod_count) * 1.5;
             const group = new THREE.Group();
             const geometry = new THREE.SphereGeometry(radius);
             const material = new THREE.MeshLambertMaterial({
@@ -61,7 +61,7 @@ function Graph() {
               transparent: true,
               opacity: 0.9
             });
-            const sphere = new THREE.Mesh( geometry, material );
+            const sphere = new THREE.Mesh(geometry, material);
   
             const sprite = new SpriteText(node.name);
             sprite.textHeight = 0.5 * radius;
@@ -73,7 +73,7 @@ function Graph() {
         }} 
         linkColor='#d2dae2'
         linkOpacity={0.2}
-        linkWidth={node => node.collabs_count / 50}
+        linkWidth={node => node.collabs_count / 150}
         backgroundColor='#1e272e'
         onNodeClick={u => setUniversity(u.name)}
         enableNodeDrag={true}
