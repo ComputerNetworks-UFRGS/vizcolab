@@ -62,7 +62,7 @@ function Graph() {
         graphData={data}
         nodeVal='prod_count'
         nodeLabel='name'
-        nodeAutoColorBy='name'
+        nodeAutoColorBy='wide_knowledge_area'
         nodeThreeObject={node => { 
             const radius = sphereRadius(node.prod_count) * 4;
             const group = new THREE.Group();

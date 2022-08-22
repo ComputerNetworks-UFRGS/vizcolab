@@ -72,8 +72,21 @@ CALL {
 // Cria entidades universidade
 MATCH (a:Author)
 WITH a.university as university, sum(a.prod_count) AS total_prod_count
-MERGE (u:University { name: university, prod_count: total_prod_count })
-ON CREATE SET u.id = id(u);
+MERGE (u:University { name: university, prod_count: total_prod_count });
+
+// Importa informações sobre universidades
+LOAD CSV WITH HEADERS FROM 'file:///universities.csv' AS row FIELDTERMINATOR ';'
+CALL {
+  WITH row
+  MATCH (u:University { name: row.SG_ENTIDADE_ENSINO })
+  SET
+    u.id = row.CD_ENTIDADE_CAPES,
+    u.full_name = row.NM_ENTIDADE_ENSINO,
+    u.legal_status = row.CS_STATUS_JURIDICO,
+    u.region = row.NM_REGIAO,
+    u.uf = row.SG_UF_PROGRAMA,
+    u.city = row.NM_MUNICIPIO_PROGRAMA_IES
+} IN TRANSACTIONS OF 1000 ROWS;
 
 // Cria relação author -> university
 MATCH (a:Author)
@@ -83,8 +96,22 @@ MERGE (a)-[:WORKS_AT]->(u);
 // Cria entidades programas IES
 MATCH (a:Author)
 WITH a.ies_program as ies_program, a.university as university, sum(a.prod_count) AS total_prod_count
-MERGE (p:Program { name: ies_program, university: university, prod_count: total_prod_count })
-ON CREATE SET p.id = id(p);
+MERGE (p:Program { name: ies_program, university: university, prod_count: total_prod_count });
+
+// Importa informações sobre programas IES
+LOAD CSV WITH HEADERS FROM 'file:///programs.csv' AS row FIELDTERMINATOR ';'
+CALL {
+  WITH row
+  MATCH (p:Program { name: row.NM_PROGRAMA_IES, university: row.SG_ENTIDADE_ENSINO })
+  SET
+    p.id = row.CD_PROGRAMA_IES,
+    p.full_name = row.NM_PROGRAMA_IES,
+    p.wide_knowledge_area = row.NM_GRANDE_AREA_CONHECIMENTO,
+    p.knowledge_area = row.NM_AREA_CONHECIMENTO,
+    p.knowledge_subarea = row.NM_SUBAREA_CONHECIMENTO,
+    p.specialty = row.NM_ESPECIALIDADE,
+    p.rating_area = row.NM_AREA_AVALIACAO
+} IN TRANSACTIONS OF 1000 ROWS;
 
 // Cria relação de colaboração entre universidades
 MATCH (u1:University)<-[:WORKS_AT]-(:Author)-[:AUTHOR]-(p: Production)-[:AUTHOR]-(:Author)-[:WORKS_AT]->(u2:University)
@@ -102,5 +129,4 @@ MATCH (p1:Program)<-[:MEMBER_OF]-(:Author)-[:AUTHOR]-(prod: Production)-[:AUTHOR
 WHERE p1.name <> p2.name OR p1.university <> p2.university
 WITH p1, p2, count(DISTINCT prod) AS collabs_count
 MERGE (p1)-[:COLLABORATES_WITH {collabs_count: collabs_count}]-(p2);
-
 
