@@ -80,7 +80,8 @@ $overlay-text-color: #ecf0f1;
         font-size: 14pt;
         text-transform: uppercase;
         font-weight: bolder;
-        margin: 0
+        margin: 0;
+        margin-bottom: .5rem;
       }
     
       h2 {
@@ -96,7 +97,8 @@ $overlay-text-color: #ecf0f1;
     
       small {
         color: #bdc3c7;
-        margin: -0.1rem 0 0.6rem 0;
+        margin-top: -0.4rem;
+        display: block;
       }
     }
 
@@ -142,7 +144,7 @@ $overlay-text-color: #ecf0f1;
       flex-direction: column;
       gap: 1rem;
     
-      .author-type-overlay {
+      .legend-overlay {
         @include overlay;
     
         display: flex;
@@ -150,11 +152,10 @@ $overlay-text-color: #ecf0f1;
         gap: 5px;
         width: 100;
       
-        .type-option {
+        .legend-item {
           display: flex;
           gap: 10px;
           align-items: center;
-          cursor: pointer;
       
           .color-circle {
             height: 16px;

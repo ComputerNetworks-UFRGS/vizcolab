@@ -6,16 +6,20 @@ import SpriteText from 'three-spritetext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { GlobalContext } from '../App'
+import GraphLegend from './GraphLegend'
 import {
-  sphereRadius, setZoomLevel, setLinkForce, setChargeForce, setCenterForce
-} from '../helpers/3d_graph_helper'
+  sphereRadius, setZoomLevel, setLinkForce, setChargeForce, setCenterForce, getLegendData
+} from '../helpers/graph_helper'
 import * as THREE from 'three'
+
+const COLOR_BY_PROP = 'region'
 
 function Graph() {
   const [data, setData] = useState({nodes: [], links: []})
   const [windowDimensions, setWindowDimensions] = useState({width: window.innerWidth, height: window.innerHeight})
   const [isLoading, setIsLoading] = useState(true)
-  const fgRef = useRef();
+  const [legendData, setLegendData] = useState(undefined)
+  const fgRef = useRef()
 
   const { setUniversity } = React.useContext(GlobalContext);
 
@@ -34,6 +38,7 @@ function Graph() {
       .then(data => {
         setData(data)
         setIsLoading(false)
+        setTimeout(() => setLegendData(getLegendData(data, COLOR_BY_PROP)), 300)
       })
   }, []);
 
@@ -44,6 +49,10 @@ function Graph() {
           <FontAwesomeIcon icon={faSpinner} spin />
         </div> }
 
+      <section className='right-panel'>
+        <GraphLegend legendData={legendData}/>
+      </section>
+
       <ForceGraph3D
         ref={fgRef}
         width={windowDimensions.width}
@@ -51,7 +60,7 @@ function Graph() {
         graphData={data}
         nodeVal='prod_count'
         nodeLabel='name'
-        nodeAutoColorBy='region'
+        nodeAutoColorBy={COLOR_BY_PROP}
         nodeThreeObject={node => { 
             const radius = sphereRadius(node.prod_count) * 1.5;
             const group = new THREE.Group();

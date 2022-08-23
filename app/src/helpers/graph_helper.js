@@ -26,8 +26,15 @@ export function setCenterForce(forceGraph, strength) {
   forceGraph.d3Force('center', forceCenter().strength(strength));
 }
 
-
 // Calcula o raio de uma esfera com base no volume
 export function sphereRadius(volume) {
   return Math.cbrt(3*volume/(4*Math.PI))
+}
+
+export function getLegendData(data, colorByProperty) {
+  const legendData = {}
+  for (let node of data.nodes) {
+    legendData[node[colorByProperty] || 'NÃO INFORMADO'] = node.color
+  }
+  return legendData
 }

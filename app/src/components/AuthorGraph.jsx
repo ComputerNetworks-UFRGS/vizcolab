@@ -1,8 +1,7 @@
 import React, {useState, useEffect} from 'react'
 import { ForceGraph3D } from 'react-force-graph'
 import { getAuthorsCollabs, getAuthorData } from '../helpers/neo4j_helper'
-import AuthorTypeOverlay from './AuthorTypeOverlay'
-import authorTypeColorMap from '../config/author_type_colors.json'
+import GraphLegend from './GraphLegend'
 import { useCallback, useRef } from 'react'
 import SpriteText from 'three-spritetext'
 import AuthorInfoOverlay from './AuthorInfoOverlay'
@@ -11,17 +10,19 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { GlobalContext } from '../App'
 import {
-  sphereRadius, setZoomLevel, setLinkForce, setChargeForce, setCenterForce,
-} from '../helpers/3d_graph_helper'
+  sphereRadius, setZoomLevel, setLinkForce, setChargeForce, setCenterForce, getLegendData
+} from '../helpers/graph_helper'
 import * as THREE from 'three'
 
+const COLOR_BY_PROP = 'type'
+
 function AuthorGraph() {
-  const [enabledTypes, setEnabledTypes] = useState(Object.keys(authorTypeColorMap))
   const [data, setData] = useState({nodes: [], links: []})
   const [authorData, setAuthorData] = useState(undefined)
   const [selectedAuthor, setSelectedAuthor] = useState(undefined)
   const [windowDimensions, setWindowDimensions] = useState({width: window.innerWidth, height: window.innerHeight})
   const [isLoading, setIsLoading] = useState(true)
+  const [legendData, setLegendData] = useState(undefined)
   const fgRef = useRef();
 
   const { university, programs, setPrograms } = React.useContext(GlobalContext);
@@ -41,6 +42,7 @@ function AuthorGraph() {
       .then(data => {
         setData(data)
         setIsLoading(false)
+        setTimeout(() => setLegendData(getLegendData(data, COLOR_BY_PROP)), 300)
       })
   }, [university, programs])
 
@@ -62,16 +64,16 @@ function AuthorGraph() {
     }
   }, [selectedAuthor])
 
-  const isNodeVisible = useCallback(node => {
-    const nodeType = node.type
-    return nodeType ? enabledTypes.includes(node.type) : true
-  }, [enabledTypes])
+  // const isNodeVisible = useCallback(node => {
+  //   const nodeType = node.type
+  //   return nodeType ? enabledTypes.includes(node.type) : true
+  // }, [enabledTypes])
 
-  const isLinkVisible = useCallback(link => {
-    const sourceType = link.source.type
-    const targetType = link.target.type
-    return sourceType && targetType ? enabledTypes.includes(sourceType) && enabledTypes.includes(targetType) : true
-  }, [enabledTypes])
+  // const isLinkVisible = useCallback(link => {
+  //   const sourceType = link.source.type
+  //   const targetType = link.target.type
+  //   return sourceType && targetType ? enabledTypes.includes(sourceType) && enabledTypes.includes(targetType) : true
+  // }, [enabledTypes])
 
   const handleBackButton = () => {
     if (selectedAuthor)
@@ -93,7 +95,7 @@ function AuthorGraph() {
       </div>
       
       <section className='right-panel'>
-        <AuthorTypeOverlay enabledTypes={enabledTypes} setEnabledTypes={setEnabledTypes} />
+        <GraphLegend legendData={legendData}/>
         { selectedAuthor && <AuthorInfoOverlay author={selectedAuthor} authorData={authorData} selectAuthor={setSelectedAuthor} /> }
       </section>
 
@@ -104,9 +106,9 @@ function AuthorGraph() {
         graphData={authorData || data}
         nodeVal='prod_count'
         nodeLabel={node => `${node.name} (${node.university})`}
-        nodeAutoColorBy='university'
-        nodeThreeObject={node => { 
-          const radius = sphereRadius(node.prod_count) * 7;
+        nodeAutoColorBy={COLOR_BY_PROP}
+        nodeThreeObject={node => {
+          const radius = sphereRadius(node.prod_count) * 8;
           const group = new THREE.Group();
           const geometry = new THREE.SphereGeometry(radius);
           const material = new THREE.MeshLambertMaterial({
@@ -125,12 +127,12 @@ function AuthorGraph() {
           return group;
         }} 
         linkColor='#d2dae2'
-        linkOpacity={selectedAuthor ? 0.2 : 0.1}
-        linkWidth={node => node.collabs_count / 5}
+        linkOpacity={0.2}
+        linkWidth={node => node.collabs_count / 2}
         backgroundColor='#1e272e'
         enableNodeDrag={true}
-        nodeVisibility={isNodeVisible}
-        linkVisibility={isLinkVisible}
+        // nodeVisibility={isNodeVisible}
+        // linkVisibility={isLinkVisible}
         onNodeClick={setSelectedAuthor}
         onBackgroundClick={() => setSelectedAuthor(undefined)}
       />

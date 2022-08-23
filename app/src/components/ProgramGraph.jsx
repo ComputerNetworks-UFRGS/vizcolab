@@ -6,16 +6,20 @@ import SpriteText from 'three-spritetext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { GlobalContext } from '../App'
+import GraphLegend from './GraphLegend'
 import { 
-  sphereRadius, setZoomLevel, setLinkForce, setChargeForce, setCenterForce,
-} from '../helpers/3d_graph_helper'
+  sphereRadius, setZoomLevel, setLinkForce, setChargeForce, setCenterForce, getLegendData
+} from '../helpers/graph_helper'
 
 import * as THREE from 'three'
+
+const COLOR_BY_PROP = 'wide_knowledge_area'
 
 function Graph() {
   const [data, setData] = useState({nodes: [], links: []})
   const [windowDimensions, setWindowDimensions] = useState({width: window.innerWidth, height: window.innerHeight})
   const [isLoading, setIsLoading] = useState(true)
+  const [legendData, setLegendData] = useState(undefined)
   const fgRef = useRef();
 
   const { university, setUniversity, setPrograms } = React.useContext(GlobalContext);
@@ -37,6 +41,7 @@ function Graph() {
       .then(data => {
         setData(data)
         setIsLoading(false)
+        setTimeout(() => setLegendData(getLegendData(data, COLOR_BY_PROP)), 300)
     })
   }, [university])
 
@@ -46,14 +51,18 @@ function Graph() {
 
   return (
     <section className='graph'>
-        <div className='back-button' onClick={handleBackButton}>
-          <FontAwesomeIcon icon={faArrowLeft}/>
-        </div>
+      <div className='back-button' onClick={handleBackButton}>
+        <FontAwesomeIcon icon={faArrowLeft}/>
+      </div>
 
       { isLoading &&
         <div className='graph-loading'>
           <FontAwesomeIcon icon={faSpinner} spin />
         </div> }
+
+      <section className='right-panel'>
+        <GraphLegend legendData={legendData}/>
+      </section>
 
       <ForceGraph3D
         ref={fgRef}
@@ -62,7 +71,7 @@ function Graph() {
         graphData={data}
         nodeVal='prod_count'
         nodeLabel='name'
-        nodeAutoColorBy='wide_knowledge_area'
+        nodeAutoColorBy={COLOR_BY_PROP}
         nodeThreeObject={node => { 
             const radius = sphereRadius(node.prod_count) * 4;
             const group = new THREE.Group();
