@@ -4,7 +4,8 @@ import { getAuthorsCollabs, getAuthorData } from '../helpers/neo4j_helper'
 import GraphLegend from './GraphLegend'
 import { useCallback, useRef } from 'react'
 import SpriteText from 'three-spritetext'
-import AuthorInfoOverlay from './AuthorInfoOverlay'
+import NodeDetailsOverlay from './NodeDetailsOverlay'
+import NodeCollabsOverlay from './NodeCollabsOverlay'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faSpinner } from '@fortawesome/free-solid-svg-icons'
@@ -25,7 +26,7 @@ function AuthorGraph() {
   const [legendData, setLegendData] = useState(undefined)
   const fgRef = useRef();
 
-  const { university, programs, setPrograms } = React.useContext(GlobalContext);
+  const { university, programs, setPrograms, author, setAuthor } = React.useContext(GlobalContext);
 
   useEffect(() => {
     setLinkForce(fgRef.current, 0.2);
@@ -42,14 +43,15 @@ function AuthorGraph() {
       .then(data => {
         setData(data)
         setIsLoading(false)
-        setTimeout(() => setLegendData(getLegendData(data, COLOR_BY_PROP)), 300)
+        setTimeout(() => setLegendData(getLegendData(data, COLOR_BY_PROP)), 500)
       })
   }, [university, programs])
 
   useEffect(() => {
-    if (selectedAuthor) {
+    if (author) {
+      setSelectedAuthor(author)
       setIsLoading(true)
-      getAuthorData(selectedAuthor.id).then(data => {
+      getAuthorData(author.id).then(data => {
         setAuthorData(data)
         setIsLoading(false)
       });
@@ -62,7 +64,7 @@ function AuthorGraph() {
       // Reset camera
       setZoomLevel(fgRef.current, 1000)
     }
-  }, [selectedAuthor])
+  }, [author])
 
   // const isNodeVisible = useCallback(node => {
   //   const nodeType = node.type
@@ -76,10 +78,19 @@ function AuthorGraph() {
   // }, [enabledTypes])
 
   const handleBackButton = () => {
-    if (selectedAuthor)
+    if (author) {
+      setAuthor(null)
       setSelectedAuthor(null)
-    else {
+    } else {
       setPrograms([])
+    }
+  }
+
+  const handleNodeClick = (node, event) => {
+    if (event.ctrlKey) {
+      setAuthor(node)
+    } else {
+      setSelectedAuthor(node)
     }
   }
 
@@ -96,7 +107,18 @@ function AuthorGraph() {
       
       <section className='right-panel'>
         <GraphLegend legendData={legendData}/>
-        { selectedAuthor && <AuthorInfoOverlay author={selectedAuthor} authorData={authorData} selectAuthor={setSelectedAuthor} /> }
+        { selectedAuthor &&
+          <NodeDetailsOverlay nodeType='AUTOR' title={selectedAuthor.name} detailsSchema={{
+            'Universidade': selectedAuthor.university,
+            'Programa IES': selectedAuthor.ies_program,
+            'Tipo': selectedAuthor.type,
+            'Nome ABNT': selectedAuthor.abnt_name,
+            'Número de Produções': selectedAuthor.prod_count
+          }}/>
+        }
+        { authorData &&
+          <NodeCollabsOverlay authorData={authorData} selectAuthor={setAuthor} />
+        }
       </section>
 
       <ForceGraph3D
@@ -133,7 +155,7 @@ function AuthorGraph() {
         enableNodeDrag={true}
         // nodeVisibility={isNodeVisible}
         // linkVisibility={isLinkVisible}
-        onNodeClick={setSelectedAuthor}
+        onNodeClick={handleNodeClick}
         onBackgroundClick={() => setSelectedAuthor(undefined)}
       />
     </section>

@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { GlobalContext } from '../App'
 import GraphLegend from './GraphLegend'
+import NodeDetailsOverlay from './NodeDetailsOverlay'
 import { 
   sphereRadius, setZoomLevel, setLinkForce, setChargeForce, setCenterForce, getLegendData
 } from '../helpers/graph_helper'
@@ -18,6 +19,7 @@ const COLOR_BY_PROP = 'wide_knowledge_area'
 function Graph() {
   const [data, setData] = useState({nodes: [], links: []})
   const [windowDimensions, setWindowDimensions] = useState({width: window.innerWidth, height: window.innerHeight})
+  const [selectedProgram, setSelectedProgram] = useState(undefined)
   const [isLoading, setIsLoading] = useState(true)
   const [legendData, setLegendData] = useState(undefined)
   const fgRef = useRef();
@@ -49,6 +51,14 @@ function Graph() {
     setUniversity(null)
   }
 
+  const handleNodeClick = (node, event) => {
+    if (event.ctrlKey) {
+      setPrograms([node.name])
+    } else {
+      setSelectedProgram(node)
+    }
+  }
+
   return (
     <section className='graph'>
       <div className='back-button' onClick={handleBackButton}>
@@ -62,6 +72,16 @@ function Graph() {
 
       <section className='right-panel'>
         <GraphLegend legendData={legendData}/>
+        {selectedProgram &&
+          <NodeDetailsOverlay nodeType='PROGRAMA' title={selectedProgram.full_name} detailsSchema={{
+            'Grande Area de Conhecimento': selectedProgram.wide_knowledge_area,
+            'Área de Conhecimento': selectedProgram.knowledge_area,
+            'Sub-área de Conhecimento': selectedProgram.knowledge_subarea,
+            'Especialidade': selectedProgram.specialty,
+            'Área de Avaliação': selectedProgram.rating_area,
+            'Número de Produções': selectedProgram.prod_count
+          }}/>
+        }
       </section>
 
       <ForceGraph3D
@@ -95,7 +115,7 @@ function Graph() {
         linkOpacity={0.2}
         linkWidth={node => node.collabs_count / 15}
         backgroundColor='#1e272e'
-        onNodeClick={p => setPrograms([p.name])}
+        onNodeClick={handleNodeClick}
         enableNodeDrag={true}
       />
     </section>

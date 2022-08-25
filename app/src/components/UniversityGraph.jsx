@@ -11,12 +11,14 @@ import {
   sphereRadius, setZoomLevel, setLinkForce, setChargeForce, setCenterForce, getLegendData
 } from '../helpers/graph_helper'
 import * as THREE from 'three'
+import NodeDetailsOverlay from './NodeDetailsOverlay'
 
 const COLOR_BY_PROP = 'region'
 
 function Graph() {
   const [data, setData] = useState({nodes: [], links: []})
   const [windowDimensions, setWindowDimensions] = useState({width: window.innerWidth, height: window.innerHeight})
+  const [selectedUniversity, setSelectedUniversity] = useState(undefined)
   const [isLoading, setIsLoading] = useState(true)
   const [legendData, setLegendData] = useState(undefined)
   const fgRef = useRef()
@@ -42,6 +44,14 @@ function Graph() {
       })
   }, []);
 
+  const handleNodeClick = (node, event) => {
+    if (event.ctrlKey) {
+      setUniversity(node.name)
+    } else {
+      setSelectedUniversity(node)
+    }
+  }
+
   return (
     <section className='graph'>
       { isLoading &&
@@ -51,6 +61,16 @@ function Graph() {
 
       <section className='right-panel'>
         <GraphLegend legendData={legendData}/>
+        {selectedUniversity &&
+          <NodeDetailsOverlay nodeType='UNIVERSIDADE' title={selectedUniversity.full_name} detailsSchema={{
+            'Sigla': selectedUniversity.name,
+            'Status Jurídico': selectedUniversity.legal_status,
+            'Região': selectedUniversity.region,
+            'UF': selectedUniversity.uf,
+            'Cidade': selectedUniversity.city,
+            'Número de Produções': selectedUniversity.prod_count
+          }}/>
+        }
       </section>
 
       <ForceGraph3D
@@ -84,7 +104,7 @@ function Graph() {
         linkOpacity={0.2}
         linkWidth={node => node.collabs_count / 150}
         backgroundColor='#1e272e'
-        onNodeClick={u => setUniversity(u.name)}
+        onNodeClick={handleNodeClick}
         enableNodeDrag={true}
       />
     </section>

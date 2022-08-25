@@ -10,6 +10,7 @@ export const GlobalContext = React.createContext();
 function App() {
   const [university, setUniversity] = React.useState(undefined);
   const [programs, setPrograms] = React.useState([]);
+  const [author, setAuthor] = React.useState(undefined);
 
   const graphLevel = university ? programs.length > 0 ? 'authors' : 'programs' : 'universities';
 
@@ -26,7 +27,7 @@ function App() {
   }
 
   return (
-    <GlobalContext.Provider value={{university, setUniversity, programs, setPrograms}}>
+    <GlobalContext.Provider value={{university, setUniversity, programs, setPrograms, author, setAuthor}}>
       <div className="App">
         <Header/>
         <Graph/>

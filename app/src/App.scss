@@ -86,7 +86,7 @@ $overlay-text-color: #ecf0f1;
     
       h2 {
         font-size: 12pt;
-        margin-bottom: .4rem;
+        margin-bottom: .1rem;
         &::after {
           content: '';
           display: block;
@@ -172,14 +172,15 @@ $overlay-text-color: #ecf0f1;
         }
       }
       
-      .author-info-overlay {
+      .node-info-overlay {
         @include overlay;
     
         .details {
           display: flex;
           flex-direction: column;
           gap: .6rem;
-    
+          margin-top: 1rem;
+       
           .item {
             display: flex;
             flex-direction: column;
