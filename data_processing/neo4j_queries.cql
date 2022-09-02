@@ -18,11 +18,12 @@ CALL {
     a.university = author.SG_ENTIDADE_ENSINO,
     a.type = author.TP_AUTOR,
     a.abnt_name = author.NM_ABNT_AUTOR,
+    a.id_ies_program = author.CD_PROGRAMA_IES,
     a.ies_program = author.NM_PROGRAMA_IES,
     a.prod_count = toInteger(author.PROD_COUNT),
-    a.knowledge_area = author.NM_AREA_CONHECIMENTO
+    a.knowledge_area = author.NM_AREA_CONHECIMENTO,
+    a.research_line = author.NM_LINHA_PESQUISA
 } IN TRANSACTIONS OF 1000 ROWS;
-
 
 // Criação das entidades 'Production' pelo id da produção
 LOAD CSV WITH HEADERS FROM 'file:///final_authors.csv' AS author FIELDTERMINATOR ';'
@@ -31,7 +32,7 @@ CALL {
   MATCH (a:Author { id: toInteger(author.IDX) })
   MERGE (p:Production { id: toInteger(author.ID_ADD_PRODUCAO_INTELECTUAL) })
   // Criação da relação de autoria autor -> produção
-  CREATE (a)-[:AUTHOR]->(p)
+  MERGE (a)-[:AUTHOR]->(p)
 } IN TRANSACTIONS OF 1000 ROWS;
 
 // Importação das produções
@@ -51,8 +52,6 @@ CALL {
     p.projects = prod.NM_PROJETO,
     p.knowledge_area = prod.NM_AREA_CONHECIMENTO
 } IN TRANSACTIONS OF 1000 ROWS;
-
-:use vizcolab;
 
 // Cria relações de co-autoria entre autores de uma mesma produção
 LOAD CSV WITH HEADERS FROM 'file:///co_authorships.csv' AS row FIELDTERMINATOR ';'
@@ -95,14 +94,18 @@ MERGE (a)-[:WORKS_AT]->(u);
 
 // Cria entidades programas IES
 MATCH (a:Author)
-WITH a.ies_program as ies_program, a.university as university, sum(a.prod_count) AS total_prod_count
-MERGE (p:Program { name: ies_program, university: university, prod_count: total_prod_count });
+WITH a.id_ies_program as program_id, a.ies_program as program_name, a.university as university, sum(a.prod_count) AS total_prod_count
+MERGE (p:Program { id: program_id })
+ON CREATE SET
+  p.name = program_name,
+  p.university = university,
+  p.prod_count = total_prod_count;
 
 // Importa informações sobre programas IES
 LOAD CSV WITH HEADERS FROM 'file:///programs.csv' AS row FIELDTERMINATOR ';'
 CALL {
   WITH row
-  MATCH (p:Program { name: row.NM_PROGRAMA_IES, university: row.SG_ENTIDADE_ENSINO })
+  MATCH (p:Program { id: row.CD_PROGRAMA_IES })
   SET
     p.id = row.CD_PROGRAMA_IES,
     p.full_name = row.NM_PROGRAMA_IES,
@@ -110,6 +113,7 @@ CALL {
     p.knowledge_area = row.NM_AREA_CONHECIMENTO,
     p.knowledge_subarea = row.NM_SUBAREA_CONHECIMENTO,
     p.specialty = row.NM_ESPECIALIDADE,
+    p.university = row.SG_ENTIDADE_ENSINO,
     p.rating_area = row.NM_AREA_AVALIACAO
 } IN TRANSACTIONS OF 1000 ROWS;
 
@@ -121,7 +125,7 @@ MERGE (u1)-[:COLLABORATES_WITH {collabs_count: collabs_count}]-(u2);
 
 // Cria relação author -> programa IES
 MATCH (a:Author)
-MATCH (p:Program { name: a.ies_program, university: a.university })
+MATCH (p:Program { id: a.id_ies_program })
 MERGE (a)-[:MEMBER_OF]->(p);
 
 // Cria relação de colaboração entre programas IES

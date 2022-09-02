@@ -15,7 +15,7 @@ import {
 } from '../helpers/graph_helper'
 import * as THREE from 'three'
 
-const COLOR_BY_PROP = 'type'
+const COLOR_BY_PROP = 'research_line'
 
 function AuthorGraph() {
   const [data, setData] = useState({nodes: [], links: []})
@@ -111,6 +111,7 @@ function AuthorGraph() {
           <NodeDetailsOverlay nodeType='AUTOR' title={selectedAuthor.name} detailsSchema={{
             'Universidade': selectedAuthor.university,
             'Programa IES': selectedAuthor.ies_program,
+            'Linha de Pesquisa': selectedAuthor.research_line,
             'Tipo': selectedAuthor.type,
             'Nome ABNT': selectedAuthor.abnt_name,
             'Número de Produções': selectedAuthor.prod_count
@@ -127,7 +128,7 @@ function AuthorGraph() {
         height={windowDimensions.height - 50} // 50 is the height of the header
         graphData={authorData || data}
         nodeVal='prod_count'
-        nodeLabel={node => `${node.name} (${node.university})`}
+        nodeLabel={node => `<div class="node-label">${node.name} (${node.university})<br><small>${node.research_line}</small></div>`}
         nodeAutoColorBy={COLOR_BY_PROP}
         nodeThreeObject={node => {
           const radius = sphereRadius(node.prod_count) * 8;
@@ -150,7 +151,7 @@ function AuthorGraph() {
         }} 
         linkColor='#d2dae2'
         linkOpacity={0.2}
-        linkWidth={node => node.collabs_count / 2}
+        linkWidth={node => node.collabs_count}
         backgroundColor='#1e272e'
         enableNodeDrag={true}
         // nodeVisibility={isNodeVisible}
