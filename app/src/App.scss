@@ -147,26 +147,28 @@ $overlay-text-color: #ecf0f1;
       .legend-overlay {
         @include overlay;
     
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        width: 100;
-      
-        .legend-item {
+        .items {
           display: flex;
-          gap: 10px;
-          align-items: center;
-      
-          .color-circle {
-            height: 16px;
-            width: 16px;
-            border-radius: 50%;
-            box-shadow: inset -2px -2px 4px rgba(0,0,0,.5);
-          }
-      
-          &.disabled {
-            .type-name {
-              text-decoration: line-through;
+          flex-direction: column;
+          gap: 5px;
+
+          .legend-item {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        
+            .color-circle {
+              height: 16px;
+              width: 16px;
+              border-radius: 50%;
+              flex-shrink: 0;
+              box-shadow: inset -2px -2px 4px rgba(0,0,0,.5);
+            }
+        
+            &.disabled {
+              .type-name {
+                text-decoration: line-through;
+              }
             }
           }
         }

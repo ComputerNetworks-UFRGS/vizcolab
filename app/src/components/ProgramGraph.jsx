@@ -113,7 +113,7 @@ function Graph() {
         }} 
         linkColor='#d2dae2'
         linkOpacity={0.2}
-        linkWidth={node => node.collabs_count / 15}
+        linkWidth={node => node.collabs_count / 5}
         backgroundColor='#1e272e'
         onNodeClick={handleNodeClick}
         enableNodeDrag={true}

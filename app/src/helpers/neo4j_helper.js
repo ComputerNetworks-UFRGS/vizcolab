@@ -60,14 +60,20 @@ function parseCollabsResults(records) {
     const e1 = r.get("e1").properties;
     const e2 = r.get("e2").properties;
     const collabs_count = r.get('collabs_count');
-    nodes[e1.name] = e1;
-    nodes[e2.name] = e2;
-    return {source: parseInt(e1.id), target: parseInt(e2.id), collabs_count: parseInt(collabs_count)}
+
+    if (typeof(e1.id) !== 'string' || typeof(e2.id) !== 'string') {
+      e1.id = parseInt(e1.id).toString();
+      e2.id = parseInt(e2.id).toString();
+    }
+
+    nodes[e1.id] = e1;
+    nodes[e2.id] = e2;
+    return {source: e1.id, target: e2.id, collabs_count: parseInt(collabs_count)}
   }).filter(r => r.collabs_count > 0);
 
   nodes = Object.values(nodes).map(node => ({
     ...node,
-    id: parseInt(node.id),
+    id: node.id,
     // color: getNodeColorByType(node),
     prod_count: parseInt(node.prod_count),
   }));

@@ -7,12 +7,14 @@ function GraphLegend({legendData}) {
     <div className='legend-overlay'>
       <h1>Legenda</h1>
 
-      {Object.entries(legendData).map(([type, color]) => (
-        <div key={type} className={`legend-item`}>
-          <div className='color-circle' style={{backgroundColor: color}}/>
-          <span className='type-name'>{type}</span>
-        </div>
-      ))}
+      <div className='items'>
+        {Object.entries(legendData).slice(0, 10).map(([type, color]) => (
+          <div key={type} className={`legend-item`}>
+            <div className='color-circle' style={{backgroundColor: color}}/>
+            <span className='type-name'>{type}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
