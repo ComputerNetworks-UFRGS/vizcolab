@@ -4,7 +4,7 @@ import { getAuthorsCollabs, getAuthorData } from '../helpers/neo4j_helper'
 import { useRef } from 'react'
 import SpriteText from 'three-spritetext'
 import NodeDetailsOverlay from './NodeDetailsOverlay'
-
+import DetailLevelSelector from './DetailLevelSelector'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { GlobalContext } from '../App'
@@ -22,6 +22,7 @@ function AuthorGraph() {
   const [windowDimensions, setWindowDimensions] = useState({width: window.innerWidth, height: window.innerHeight})
   const [isLoading, setIsLoading] = useState(true)
   const [legendData, setLegendData] = useState(undefined)
+  const [connectionDensity, setConnectionDensity] = useState(2)
   const fgRef = useRef();
 
   const { university, programs, setPrograms, author, setAuthor } = React.useContext(GlobalContext);
@@ -37,13 +38,13 @@ function AuthorGraph() {
   }, []);
 
   useEffect(() => {
-    getAuthorsCollabs(university, programs, 2)
+    getAuthorsCollabs(university, programs, connectionDensity)
       .then(data => {
         setData(data)
         setIsLoading(false)
         setTimeout(() => setLegendData(getLegendData(data, COLOR_BY_PROP)), 500)
       })
-  }, [university, programs])
+  }, [university, programs, connectionDensity])
 
   useEffect(() => {
     if (author) {
@@ -105,6 +106,8 @@ function AuthorGraph() {
           authorData={authorData} selectAuthor={setAuthor} />
         }
       </section>
+
+      <DetailLevelSelector density={connectionDensity} setDensity={setConnectionDensity}/>
 
       <ForceGraph3D
         ref={fgRef}

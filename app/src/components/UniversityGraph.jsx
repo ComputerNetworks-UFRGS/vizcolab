@@ -12,6 +12,7 @@ import {
 } from '../helpers/graph_helper'
 import * as THREE from 'three'
 import NodeDetailsOverlay from './NodeDetailsOverlay'
+import DetailLevelSelector from './DetailLevelSelector'
 
 const COLOR_BY_PROP = 'region'
 
@@ -21,6 +22,7 @@ function Graph() {
   const [selectedUniversity, setSelectedUniversity] = useState(undefined)
   const [isLoading, setIsLoading] = useState(true)
   const [legendData, setLegendData] = useState(undefined)
+  const [connectionDensity, setConnectionDensity] = useState(3)
   const fgRef = useRef()
 
   const { setUniversity } = React.useContext(GlobalContext);
@@ -35,14 +37,16 @@ function Graph() {
     window.addEventListener('resize', () => {
       setWindowDimensions({width: window.innerWidth, height: window.innerHeight})
     })
+  }, []);
 
-    getUniversitiesCollabs()
+  useEffect(() => {
+    getUniversitiesCollabs(connectionDensity)
       .then(data => {
         setData(data)
         setIsLoading(false)
         setTimeout(() => setLegendData(getLegendData(data, COLOR_BY_PROP)), 300)
       })
-  }, []);
+  }, [connectionDensity])
 
   const exploreNode = (node) => setUniversity(node.name)
 
@@ -70,6 +74,8 @@ function Graph() {
           }} exploreNode={() => exploreNode(selectedUniversity)}/>
         }
       </section>
+
+      <DetailLevelSelector density={connectionDensity} setDensity={setConnectionDensity}/>
 
       <ForceGraph3D
         ref={fgRef}

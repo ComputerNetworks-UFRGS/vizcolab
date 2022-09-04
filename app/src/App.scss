@@ -111,6 +111,62 @@ $overlay-text-color: #ecf0f1;
       font-size: 26pt;
       transform: translate(-50%, -50%);
     }
+
+    $detail-level-selector-color1: $overlay-text-color;
+    $detail-level-selector-color2: #546de5;
+
+    .detail-level-selector {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 1;
+      font-size: .8rem;
+      color: $detail-level-selector-color1;
+
+      .handles {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: .5rem;
+        
+        .line {
+          width: 100%;
+          height: 2px;
+          position: absolute;
+          background-color: $detail-level-selector-color1;
+        }
+
+        .handle {
+          width: 12px;
+          aspect-ratio: 1;
+          border-radius: 50%;
+          background-color: $detail-level-selector-color1;
+          cursor: pointer;
+          z-index: 2;
+
+          &:hover {
+            transform: scale(1.2);
+          }
+  
+          &.selected {
+            transform: scale(1.2);
+            background-color: $detail-level-selector-color2;
+            border: 2px solid $detail-level-selector-color1;
+            box-sizing: border-box;
+          }
+        }
+      }
+
+      .labels {
+        display: flex;
+        justify-content: space-between;
+        padding: 2px;
+
+        .label {
+          font-size: 1rem;
+        }
+      }
+    }
     
     .back-button {
       @include overlay;

@@ -8,6 +8,7 @@ import { faArrowLeft, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { GlobalContext } from '../App'
 import GraphLegend from './GraphLegend'
 import NodeDetailsOverlay from './NodeDetailsOverlay'
+import DetailLevelSelector from './DetailLevelSelector'
 import { 
   sphereRadius, setZoomLevel, setLinkForce, setChargeForce, setCenterForce, getLegendData
 } from '../helpers/graph_helper'
@@ -22,6 +23,7 @@ function Graph() {
   const [selectedProgram, setSelectedProgram] = useState(undefined)
   const [isLoading, setIsLoading] = useState(true)
   const [legendData, setLegendData] = useState(undefined)
+  const [connectionDensity, setConnectionDensity] = useState(3)
   const fgRef = useRef();
 
   const { university, setUniversity, setPrograms } = React.useContext(GlobalContext);
@@ -39,13 +41,13 @@ function Graph() {
   }, []);
 
   useEffect(() => {
-    getProgramsCollabs(university)
+    getProgramsCollabs(university, connectionDensity)
       .then(data => {
         setData(data)
         setIsLoading(false)
         setTimeout(() => setLegendData(getLegendData(data, COLOR_BY_PROP)), 300)
     })
-  }, [university])
+  }, [university, connectionDensity])
 
   const handleBackButton = () => {
     setUniversity(null)
@@ -81,6 +83,8 @@ function Graph() {
           }} exploreNode={() => exploreNode(selectedProgram)} />
         }
       </section>
+
+      <DetailLevelSelector density={connectionDensity} setDensity={setConnectionDensity}/>
 
       <ForceGraph3D
         ref={fgRef}
