@@ -44,12 +44,10 @@ function Graph() {
       })
   }, []);
 
+  const exploreNode = (node) => setUniversity(node.name)
+
   const handleNodeClick = (node, event) => {
-    if (event.ctrlKey) {
-      setUniversity(node.name)
-    } else {
-      setSelectedUniversity(node)
-    }
+    event.ctrlKey ? exploreNode(node) : setSelectedUniversity(node)
   }
 
   return (
@@ -69,7 +67,7 @@ function Graph() {
             'UF': selectedUniversity.uf,
             'Cidade': selectedUniversity.city,
             'Número de Produções': selectedUniversity.prod_count
-          }}/>
+          }} exploreNode={() => exploreNode(selectedUniversity)}/>
         }
       </section>
 
@@ -105,6 +103,7 @@ function Graph() {
         linkWidth={node => node.collabs_count / 150}
         backgroundColor='#1e272e'
         onNodeClick={handleNodeClick}
+        onBackgroundClick={() => setSelectedUniversity(undefined)}
         enableNodeDrag={true}
       />
     </section>

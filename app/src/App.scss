@@ -198,6 +198,27 @@ $overlay-text-color: #ecf0f1;
     
           }
         }
+
+        .explore {
+          display: flex;
+          align-items: flex-end;
+          gap: .5rem;
+          margin-top: 1rem;
+          .btn {
+            padding: .5rem 1rem;
+            border-radius: 5px;
+            background-color: #546de5;
+            max-width: 5rem;
+            cursor: pointer;
+
+            &:hover {
+              opacity: 0.9;
+            }
+          }
+          small {
+            margin-top: .4rem;
+          }
+        }
     
         .connections {
           display: flex;

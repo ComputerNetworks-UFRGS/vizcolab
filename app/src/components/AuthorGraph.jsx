@@ -1,11 +1,9 @@
 import React, {useState, useEffect} from 'react'
 import { ForceGraph3D } from 'react-force-graph'
 import { getAuthorsCollabs, getAuthorData } from '../helpers/neo4j_helper'
-import GraphLegend from './GraphLegend'
-import { useCallback, useRef } from 'react'
+import { useRef } from 'react'
 import SpriteText from 'three-spritetext'
 import NodeDetailsOverlay from './NodeDetailsOverlay'
-import NodeCollabsOverlay from './NodeCollabsOverlay'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faSpinner } from '@fortawesome/free-solid-svg-icons'
@@ -66,17 +64,6 @@ function AuthorGraph() {
     }
   }, [author])
 
-  // const isNodeVisible = useCallback(node => {
-  //   const nodeType = node.type
-  //   return nodeType ? enabledTypes.includes(node.type) : true
-  // }, [enabledTypes])
-
-  // const isLinkVisible = useCallback(link => {
-  //   const sourceType = link.source.type
-  //   const targetType = link.target.type
-  //   return sourceType && targetType ? enabledTypes.includes(sourceType) && enabledTypes.includes(targetType) : true
-  // }, [enabledTypes])
-
   const handleBackButton = () => {
     if (author) {
       setAuthor(null)
@@ -86,12 +73,10 @@ function AuthorGraph() {
     }
   }
 
+  const exploreNode = (node) => setAuthor(node)
+
   const handleNodeClick = (node, event) => {
-    if (event.ctrlKey) {
-      setAuthor(node)
-    } else {
-      setSelectedAuthor(node)
-    }
+    event.ctrlKey ? exploreNode(node) : setSelectedAuthor(node)
   }
 
   return (
@@ -106,7 +91,7 @@ function AuthorGraph() {
       </div>
       
       <section className='right-panel'>
-        <GraphLegend legendData={legendData}/>
+        {/* <GraphLegend legendData={legendData}/> */}
         { selectedAuthor &&
           <NodeDetailsOverlay nodeType='AUTOR' title={selectedAuthor.name} detailsSchema={{
             'Universidade': selectedAuthor.university,
@@ -115,10 +100,9 @@ function AuthorGraph() {
             'Tipo': selectedAuthor.type,
             'Nome ABNT': selectedAuthor.abnt_name,
             'Número de Produções': selectedAuthor.prod_count
-          }}/>
-        }
-        { authorData &&
-          <NodeCollabsOverlay authorData={authorData} selectAuthor={setAuthor} />
+          }}
+          exploreNode={!authorData ? () => exploreNode(selectedAuthor) : undefined}
+          authorData={authorData} selectAuthor={setAuthor} />
         }
       </section>
 
@@ -154,8 +138,6 @@ function AuthorGraph() {
         linkWidth={node => node.collabs_count}
         backgroundColor='#1e272e'
         enableNodeDrag={true}
-        // nodeVisibility={isNodeVisible}
-        // linkVisibility={isLinkVisible}
         onNodeClick={handleNodeClick}
         onBackgroundClick={() => setSelectedAuthor(undefined)}
       />

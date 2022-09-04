@@ -51,12 +51,10 @@ function Graph() {
     setUniversity(null)
   }
 
+  const exploreNode = (node) => setPrograms([node.name])
+
   const handleNodeClick = (node, event) => {
-    if (event.ctrlKey) {
-      setPrograms([node.name])
-    } else {
-      setSelectedProgram(node)
-    }
+    event.ctrlKey ? exploreNode(node) : setSelectedProgram(node)
   }
 
   return (
@@ -80,7 +78,7 @@ function Graph() {
             'Especialidade': selectedProgram.specialty,
             'Área de Avaliação': selectedProgram.rating_area,
             'Número de Produções': selectedProgram.prod_count
-          }}/>
+          }} exploreNode={() => exploreNode(selectedProgram)} />
         }
       </section>
 
@@ -116,6 +114,7 @@ function Graph() {
         linkWidth={node => node.collabs_count / 5}
         backgroundColor='#1e272e'
         onNodeClick={handleNodeClick}
+        onBackgroundClick={() => setSelectedProgram(undefined)}
         enableNodeDrag={true}
       />
     </section>
