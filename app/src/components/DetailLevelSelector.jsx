@@ -1,12 +1,10 @@
 import React from 'react'
 
 const MIN_DETAIL_LEVEL = 1
-const MAX_DETAIL_LEVEL = 5
+const MAX_DETAIL_LEVEL = 7
 
 function DetailLevelSelector({density, setDensity}) {
   const num_levels = MAX_DETAIL_LEVEL - MIN_DETAIL_LEVEL + 1
-
-  console.debug(density)
 
   return (
     <div className='detail-level-selector'>

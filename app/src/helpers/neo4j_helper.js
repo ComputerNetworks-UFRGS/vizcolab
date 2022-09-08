@@ -88,6 +88,9 @@ function parseCollabsResults(records) {
 export async function getAuthorData(author_id) {
   const QUERY = `
     MATCH (e1:Author {id: ${author_id}})-[r:CO_AUTHOR]-(e2:Author)
+    RETURN e1, e2, r.collabs_count as collabs_count
+    UNION ALL
+    MATCH (a:Author {id: ${author_id}})-[:CO_AUTHOR]-(e1:Author)-[r:CO_AUTHOR]-(e2:Author)-[:CO_AUTHOR]-(a)
     RETURN e1, e2, r.collabs_count as collabs_count;
   `
 

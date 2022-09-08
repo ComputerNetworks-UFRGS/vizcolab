@@ -22,13 +22,12 @@ function AuthorGraph() {
   const [windowDimensions, setWindowDimensions] = useState({width: window.innerWidth, height: window.innerHeight})
   const [isLoading, setIsLoading] = useState(true)
   const [legendData, setLegendData] = useState(undefined)
-  const [connectionDensity, setConnectionDensity] = useState(2)
+  const [connectionDensity, setConnectionDensity] = useState(3)
   const fgRef = useRef();
 
   const { university, programs, setPrograms, author, setAuthor } = React.useContext(GlobalContext);
 
   useEffect(() => {
-    setLinkForce(fgRef.current, 0.2);
     setChargeForce(fgRef.current, -500, 600);
     setCenterForce(fgRef.current, 1);
 
@@ -57,11 +56,13 @@ function AuthorGraph() {
       
       // Set the camera to look at the selected author
       setZoomLevel(fgRef.current, 500)
+      setLinkForce(fgRef.current, 0.02);
     } else {
       setAuthorData(undefined);
 
       // Reset camera
       setZoomLevel(fgRef.current, 1000)
+      setLinkForce(fgRef.current, 0.2);
     }
   }, [author])
 
@@ -102,12 +103,14 @@ function AuthorGraph() {
             'Nome ABNT': selectedAuthor.abnt_name,
             'Número de Produções': selectedAuthor.prod_count
           }}
-          exploreNode={!authorData ? () => exploreNode(selectedAuthor) : undefined}
+          exploreNode={!authorData || author.id !== selectedAuthor.id ? () => exploreNode(selectedAuthor) : undefined}
           authorData={authorData} selectAuthor={setAuthor} />
         }
       </section>
 
-      <DetailLevelSelector density={connectionDensity} setDensity={setConnectionDensity}/>
+      { !authorData &&
+        <DetailLevelSelector density={connectionDensity} setDensity={setConnectionDensity}/>
+      }
 
       <ForceGraph3D
         ref={fgRef}
@@ -137,7 +140,7 @@ function AuthorGraph() {
           return group;
         }} 
         linkColor='#d2dae2'
-        linkOpacity={0.2}
+        linkOpacity={0.15}
         linkWidth={node => node.collabs_count}
         backgroundColor='#1e272e'
         enableNodeDrag={true}
