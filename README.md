@@ -14,13 +14,13 @@ O repositório é dividido em duas partes:
 
 As etapas a seguir descrevem o processo de processamento dos dados brutos da CAPES para a construção da rede de colaborações.
 
-- Faça o [download](https://infufrgsbr-my.sharepoint.com/:f:/g/personal/esfischer_inf_ufrgs_br/Esnbvcy5TtxBmFiWG9IQt1oBYyfkXbYrT5yyZR6hr3I6eA?e=oEJHtN) do diretório `datasets` e insira-o dentro do diretório `data_processing/`. Os datasets disponibilizados são referentes ao quidriênio 2017-2020. Caso queira incluir dados mais recentes, faça o download dos arquivos no [Portal de dados abertos da CAPES](https://dadosabertos.capes.gov.br/dataset/) e insira-os no diretório `data_processing/datasets/` seguindo a estrutura de diretórios e nomeação dos arquivos existentes.
+- Faça o [download](https://infufrgsbr-my.sharepoint.com/:f:/g/personal/esfischer_inf_ufrgs_br/Esnbvcy5TtxBmFiWG9IQt1oBYyfkXbYrT5yyZR6hr3I6eA?e=oEJHtN) do diretório `datasets` e insira-o dentro do diretório `data_processing/`. Os datasets disponibilizados são referentes ao quidriênio 2017-2020. Caso queira incluir dados mais recentes, faça o download dos arquivos no [Portal de dados abertos da CAPES](https://dadosabertos.capes.gov.br/dataset/) e insira-os no diretório `data_processing/datasets/` seguindo a estrutura de diretórios e nomeação dos arquivos existente.
 
 - Instale as dependências Python3:
 
   `python3 -m pip install -r requirements.txt`
 
-- O processamento dos datesets é dividido em três notebooks distintos, disponíveis no diretório `data_processing/`:
+- O processamento dos datesets é dividido em três notebooks Jupyter distintos, disponíveis no diretório `data_processing/`:
 
   1. `authors_grouping.ipynb`: processa o dataset de autores, fazendo a concatenação dos arquivos .csv, sanitização e normalização dos dados e agrupamento dos autores com múltiplas entradas no dataset. Após executado, o notebook gera dois arquivos no diretório `data_processing/output/`: `processed_authors_preliminary.csv` e `processed_authors_complete.csv`. Qualquer um deles pode ser utilizado para a geração da rede de co-autorias. Entretanto, enquanto o arquivo preliminar será gerado em minutos após as etapas de merge por `id` e por `nome do autor`, o arquivo completo provavelmente levará dias para ser gerado, já que depende do processamento complexo de merge por pontuação.
 
@@ -56,10 +56,10 @@ Obs.: O diretório `output` contendo os arquivos resultantes do processamento de
 
 - Gere a imagem docker da aplicação executando o comando:
 
-  `docker build -t vizcola-app .`
+  `docker build -t vizcolab-app .`
 
 - Execute o container da aplicação com o comando:
 
-  `docker run -p 8000:80 vizcola-app`
+  `docker run -p 8000:80 vizcolab-app`
 
 - Acesse a aplicação em <http://localhost:8000>.
