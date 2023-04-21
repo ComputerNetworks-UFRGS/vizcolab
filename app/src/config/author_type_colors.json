@@ -1,8 +1,8 @@
 {
-   "DOCENTE":  "#ee5253",
-   "PÓS-DOC":  "#ff9f43",
-   "DISCENTE":  "#0abde3",
-   "EGRESSO":  "#f368e0",
-   "PARTICIPANTE EXTERNO":  "#1dd1a1",
-   "NÃO INFORMADO": "#bdc3c7"
+    "DOCENTE": "#ee5253",
+    "PÓS-DOC": "#ff9f43",
+    "DISCENTE": "#0abde3",
+    "EGRESSO": "#f368e0",
+    "PARTICIPANTE EXTERNO": "#1dd1a1",
+    "NÃO INFORMADO": "#bdc3c7"
 }
