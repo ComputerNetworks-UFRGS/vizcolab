@@ -55,32 +55,29 @@ async function runQuery(query) {
 }
 
 function parseCollabsResults(records) {
+    // That `nodes` is first an object is needed to avoid duplicates
     let nodes = {};
-    let links = records
-        .map((r) => {
-            const e1 = r.get('e1').properties;
-            const e2 = r.get('e2').properties;
-            const collabs_count = r.get('collabs_count');
+    const links = records.map((r) => {
+        const e1 = r.get('e1').properties;
+        const e2 = r.get('e2').properties;
+        const collabs_count = r.get('collabs_count');
 
-            if (typeof e1.id !== 'string' || typeof e2.id !== 'string') {
-                e1.id = parseInt(e1.id).toString();
-                e2.id = parseInt(e2.id).toString();
-            }
+        if (typeof e1.id !== 'string' || typeof e2.id !== 'string') {
+            e1.id = parseInt(e1.id).toString();
+            e2.id = parseInt(e2.id).toString();
+        }
 
-            nodes[e1.id] = e1;
-            nodes[e2.id] = e2;
-            return {
-                source: e1.id,
-                target: e2.id,
-                collabs_count: parseInt(collabs_count),
-            };
-        })
-        .filter((r) => r.collabs_count > 0);
+        nodes[e1.id] = e1;
+        nodes[e2.id] = e2;
+        return {
+            source: e1.id,
+            target: e2.id,
+            collabs_count: parseInt(collabs_count),
+        };
+    });
 
     nodes = Object.values(nodes).map((node) => ({
         ...node,
-        id: node.id,
-        // color: getNodeColorByType(node),
         prod_count: parseInt(node.prod_count),
     }));
 
