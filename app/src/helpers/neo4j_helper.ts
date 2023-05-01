@@ -1,5 +1,31 @@
 import neo4j from 'neo4j-driver';
-import authorTypeColors from '../config/author_type_colors.json';
+
+export type RawUniversityNode = {
+    uf: string;
+    full_name: string;
+    city: string;
+    prod_count: string;
+    name: string;
+    legal_status: string;
+    id: string;
+    region: string;
+    color: string;
+    index: number;
+    x: number;
+    y: number;
+    z: number;
+    vx: number;
+    vy: number;
+    vz: number;
+};
+
+export type UniversityNode = RawUniversityNode & { prod_count: number };
+
+export type LinkType = {
+    source: UniversityNode | string;
+    target: UniversityNode | string;
+    collabs_count: number;
+};
 
 //                     //
 // NEO4J CONFIGURATION //
@@ -10,7 +36,7 @@ const {
     REACT_APP_NEO4J_DATABASE,
     REACT_APP_NEO4J_USER,
     REACT_APP_NEO4J_PASSWORD,
-} = process.env;
+} = process.env as Record<string, string>;
 
 const driver = neo4j.driver(
     REACT_APP_NEO4J_ENDPOINT,
@@ -34,10 +60,6 @@ function createSession() {
 // HELPER FUNCTIONS //
 //                  //
 
-function getNodeColorByType(node) {
-    return authorTypeColors[node.type] || '#c8d6e5';
-}
-
 async function runQuery(query) {
     let result;
     const session = createSession();
@@ -54,9 +76,16 @@ async function runQuery(query) {
     return result.records;
 }
 
-function parseCollabsResults(records) {
-    // That `nodes` is first an object is needed to avoid duplicates
-    let nodes = {};
+function parseCollabsResults(
+    records: {
+        get(v: 'e1' | 'e2'): {
+            properties: RawUniversityNode;
+        };
+        get(v: 'collabs_count'): string;
+    }[],
+) {
+    // That object is used to avoid duplicate nodes in the final array
+    const idToNode: Record<string, RawUniversityNode> = {};
     const links = records.map((r) => {
         const e1 = r.get('e1').properties;
         const e2 = r.get('e2').properties;
@@ -67,8 +96,8 @@ function parseCollabsResults(records) {
             e2.id = parseInt(e2.id).toString();
         }
 
-        nodes[e1.id] = e1;
-        nodes[e2.id] = e2;
+        idToNode[e1.id] = e1;
+        idToNode[e2.id] = e2;
         return {
             source: e1.id,
             target: e2.id,
@@ -76,7 +105,7 @@ function parseCollabsResults(records) {
         };
     });
 
-    nodes = Object.values(nodes).map((node) => ({
+    const nodes = Object.values(idToNode).map((node) => ({
         ...node,
         prod_count: parseInt(node.prod_count),
     }));

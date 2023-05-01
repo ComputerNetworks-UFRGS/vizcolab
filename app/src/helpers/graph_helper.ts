@@ -13,7 +13,7 @@ export function setLinkForce(forceGraph, strength) {
     forceGraph.d3Force('link', forceLink().strength(strength));
 }
 
-export function setChargeForce(forceGraph, strength, distanceMax) {
+export function setChargeForce(forceGraph, strength, distanceMax?) {
     forceGraph.d3Force(
         'charge',
         forceManyBody()
@@ -33,6 +33,7 @@ export function sphereRadius(volume) {
 }
 
 export function getLegendData(data, colorByProperty) {
+    if (!data) return {};
     const legendData = {};
     for (let node of data.nodes) {
         legendData[node[colorByProperty] || 'NÃO INFORMADO'] = node.color;
