@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import SpriteText from 'three-spritetext';
 import { GlobalContext } from '../App';
 import {
-    getLegendData,
+    getCaptionDict,
     setCenterForce,
     setChargeForce,
     setLinkForce,
@@ -28,7 +28,7 @@ function AuthorGraph() {
         height: window.innerHeight,
     });
     const [isLoading, setIsLoading] = useState(true);
-    const [legendData, setLegendData] = useState(undefined);
+    const [captionData, setCaptionData] = useState(undefined);
     const [connectionDensity, setConnectionDensity] = useState(3);
     const fgRef = useRef();
 
@@ -53,7 +53,7 @@ function AuthorGraph() {
                 setData(data);
                 setIsLoading(false);
                 setTimeout(
-                    () => setLegendData(getLegendData(data, COLOR_BY_PROP)),
+                    () => setCaptionData(getCaptionDict(data, COLOR_BY_PROP)),
                     500,
                 );
             },
@@ -109,7 +109,7 @@ function AuthorGraph() {
             </div>
 
             <section className="right-panel">
-                {/* <GraphLegend legendData={legendData}/> */}
+                {/* <GraphLegend captionData={captionData}/> */}
                 {selectedAuthor && (
                     <NodeDetailsOverlay
                         nodeType="AUTOR"

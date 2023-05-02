@@ -10,17 +10,23 @@ import React, {
 import ForceGraph3D, { ForceGraphMethods } from 'react-force-graph-3d';
 import * as THREE from 'three';
 import SpriteText from 'three-spritetext';
-import { GlobalContext, GraphLevel, Cu as SharedState } from '../App';
+import { GlobalContext, GraphLevel, SharedState } from '../App';
 import {
-    getLegendData,
+    getCaptionDict,
     setCenterForce,
     setChargeForce,
     setLinkForce,
     sphereRadius,
 } from '../helpers/graph_helper';
-import { LinkType, UniversityNode } from '../helpers/neo4j_helper';
+import {
+    HexColor,
+    LinkDefinition,
+    LinkLike,
+    UniversityNode,
+    getUniversitiesCollabs,
+} from '../helpers/neo4j_helper';
 import DetailLevelSelector from './DetailLevelSelector';
-import GraphLegend from './GraphLegend';
+import GraphCaptions from './GraphCaptions';
 import NodeDetailsOverlay from './NodeDetailsOverlay';
 
 const COLOR_BY_PROP = 'region';
@@ -30,7 +36,7 @@ const Graph = forwardRef<{}, { sharedState?: SharedState | null }>(
         const [data, setData] = useState<
             | {
                   nodes: UniversityNode[];
-                  links: LinkType[];
+                  links: LinkLike[];
               }
             | undefined
         >();
@@ -42,9 +48,11 @@ const Graph = forwardRef<{}, { sharedState?: SharedState | null }>(
             UniversityNode | undefined
         >(undefined);
         const [isLoading, setIsLoading] = useState(true);
-        const [legendData, setLegendData] = useState(undefined);
+        const [captionsDict, setCaptionsDict] = useState<
+            Record<string, HexColor> | undefined
+        >(undefined);
         const [connectionDensity, setConnectionDensity] = useState(3);
-        const fgRef = useRef<ForceGraphMethods<UniversityNode, LinkType>>();
+        const fgRef = useRef<ForceGraphMethods<UniversityNode, LinkLike>>();
         useImperativeHandle(
             ref,
             () => ({
@@ -65,12 +73,6 @@ const Graph = forwardRef<{}, { sharedState?: SharedState | null }>(
         const { setUniversity } = React.useContext(GlobalContext);
 
         useEffect(() => {
-            // setLinkForce(fgRef.current, 0.05);
-            // setChargeForce(fgRef.current, -500);
-            // setCenterForce(fgRef.current, 1);
-
-            // setZoomLevel(fgRef.current, 3500);
-
             window.addEventListener('resize', () => {
                 setWindowDimensions({
                     width: window.innerWidth,
@@ -84,52 +86,41 @@ const Graph = forwardRef<{}, { sharedState?: SharedState | null }>(
                 setLinkForce(fgRef.current, 0.05);
                 setChargeForce(fgRef.current, -500);
                 setCenterForce(fgRef.current, 1);
-                console.log(
-                    'props.sharedState.state.graphData: ',
-                    props.sharedState.state.graphData,
-                );
-                const linksRemaped =
+                const linkDefinitions: LinkDefinition[] =
                     props.sharedState.state.graphData.links.map((link) => {
                         return {
-                            //@ts-ignore
                             source: link.source.id,
-                            //@ts-ignore
                             target: link.target.id,
-                            collabs_count: Number(link.collabs_count),
+                            collabs_count: link.collabs_count,
                         };
                     });
 
-                //@ts-ignore
-                props.sharedState.state.graphData.links = linksRemaped;
-                console.log(
-                    'props.sharedState.state.graphData AFTER links remap: ',
-                    props.sharedState.state.graphData,
+                const newGraphData = {
+                    nodes: props.sharedState.state.graphData.nodes,
+                    links: linkDefinitions,
+                };
+                setData(newGraphData);
+                fgRef.current!.cameraPosition(
+                    props.sharedState.state.cameraPosition,
                 );
-                setData(props.sharedState.state.graphData);
-                if (fgRef.current) {
-                    fgRef.current.cameraPosition(
-                        props.sharedState.state.cameraPosition,
-                    );
-                }
                 setIsLoading(false);
                 setTimeout(() => {
-                    // setLinkForce(fgRef.current, 0.05);
-                    // setChargeForce(fgRef.current, -500);
-                    // setCenterForce(fgRef.current, 1);
-                    //@ts-ignore
-                    return setLegendData(getLegendData(data, COLOR_BY_PROP));
+                    return setCaptionsDict(
+                        getCaptionDict(newGraphData, COLOR_BY_PROP),
+                    );
                 }, 300);
             } else {
-                // getUniversitiesCollabs(connectionDensity).then((data) => {
-                //     //@ts-ignore
-                //     setData(data);
-                //     setIsLoading(false);
-                //     setTimeout(
-                //         //@ts-ignore
-                //         () => setLegendData(getLegendData(data, COLOR_BY_PROP)),
-                //         300,
-                //     );
-                // });
+                getUniversitiesCollabs(connectionDensity).then((data) => {
+                    setData(data);
+                    setIsLoading(false);
+                    setTimeout(
+                        () =>
+                            setCaptionsDict(
+                                getCaptionDict(data, COLOR_BY_PROP),
+                            ),
+                        300,
+                    );
+                });
             }
         }, [connectionDensity, props.sharedState]);
 
@@ -148,7 +139,7 @@ const Graph = forwardRef<{}, { sharedState?: SharedState | null }>(
                 )}
 
                 <section className="right-panel">
-                    <GraphLegend legendData={legendData} />
+                    <GraphCaptions captionData={captionsDict} />
                     {selectedUniversity && (
                         <NodeDetailsOverlay
                             nodeType="UNIVERSIDADE"
@@ -173,7 +164,7 @@ const Graph = forwardRef<{}, { sharedState?: SharedState | null }>(
                     setDensity={setConnectionDensity}
                 />
 
-                <ForceGraph3D<UniversityNode, LinkType>
+                <ForceGraph3D<UniversityNode, LinkLike>
                     ref={fgRef}
                     width={windowDimensions.width}
                     height={windowDimensions.height - 50} // 50 is the height of the header
@@ -194,6 +185,7 @@ const Graph = forwardRef<{}, { sharedState?: SharedState | null }>(
 
                         const sprite = new SpriteText(node.name);
                         sprite.textHeight = 0.5 * radius;
+
                         //@ts-ignore
                         sprite.position.set(0, -(2 * radius), 0);
 

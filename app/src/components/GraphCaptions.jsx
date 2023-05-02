@@ -1,14 +1,14 @@
 import React from 'react';
 
-function GraphLegend({ legendData }) {
-    if (!legendData) return <div />;
+function GraphCaptions({ captionData: captionData }) {
+    if (!captionData) return <div />;
 
     return (
         <div className="legend-overlay">
             <h1>Legenda</h1>
 
             <div className="items">
-                {Object.entries(legendData)
+                {Object.entries(captionData)
                     .slice(0, 10)
                     .map(([type, color]) => (
                         <div key={type} className={`legend-item`}>
@@ -24,4 +24,4 @@ function GraphLegend({ legendData }) {
     );
 }
 
-export default GraphLegend;
+export default GraphCaptions;

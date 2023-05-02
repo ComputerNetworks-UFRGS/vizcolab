@@ -41,9 +41,6 @@ app.get('/state/:id', async (req, res) => {
         .where(eq(graphStates.id, id))
         .execute();
 
-    //@ts-ignore
-    console.log(state[0]?.state?.graphData?.links[0]);
-
     res.send(state[0]);
 });
 

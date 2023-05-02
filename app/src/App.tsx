@@ -5,7 +5,7 @@ import AuthorGraph from './components/AuthorGraph';
 import Header from './components/Header';
 import ProgramGraph from './components/ProgramGraph';
 import UniversityGraph from './components/UniversityGraph';
-import { LinkType, UniversityNode } from './helpers/neo4j_helper';
+import { Link, UniversityNode } from './helpers/neo4j_helper';
 
 export type CameraPosition = {
     x: number;
@@ -15,7 +15,7 @@ export type CameraPosition = {
 
 export type GraphData = {
     nodes: UniversityNode[];
-    links: LinkType[];
+    links: Link[];
 };
 
 export enum GraphLevel {
@@ -31,7 +31,7 @@ export type AppState = {
     connectionDensity: number;
 };
 
-export type Cu = {
+export type SharedState = {
     id: number;
     state: AppState;
 };
@@ -61,24 +61,22 @@ function App() {
         return await res.json();
     }, [graphRef]);
 
-    const location = window.location;
+    const sharedStateId = window.location.pathname.split('/shared/')[1];
 
-    // get id from url (/shared/:id)
-    const id = location.pathname.split('/shared/')[1];
-
-    const [sharedState, setSharedState] = useState<Cu | null>(null);
+    const [sharedState, setSharedState] = useState<SharedState | null>(null);
 
     useEffect(() => {
-        if (location.pathname.startsWith('/shared/')) {
+        if (sharedStateId) {
             const loadState = async () => {
-                const res = await fetch(`http://localhost:3001/state/${id}`);
+                const res = await fetch(
+                    `http://localhost:3001/state/${sharedStateId}`,
+                );
                 const sharedState = await res.json();
-                console.log('sharedState as json from res: ', sharedState);
                 setSharedState(sharedState);
             };
             loadState();
         }
-    }, [location, id]);
+    }, [sharedStateId]);
 
     const graphLevel = sharedState
         ? sharedState.state.graphLevel
@@ -93,7 +91,7 @@ function App() {
         sharedState,
     }: {
         level?: GraphLevel;
-        sharedState?: Cu | null;
+        sharedState?: SharedState | null;
     }) {
         return (
             <>

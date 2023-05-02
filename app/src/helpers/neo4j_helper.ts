@@ -1,5 +1,7 @@
 import neo4j from 'neo4j-driver';
 
+export type HexColor = `#${string}`;
+
 export type RawUniversityNode = {
     uf: string;
     full_name: string;
@@ -9,7 +11,7 @@ export type RawUniversityNode = {
     legal_status: string;
     id: string;
     region: string;
-    color: string;
+    color: HexColor;
     index: number;
     x: number;
     y: number;
@@ -19,13 +21,23 @@ export type RawUniversityNode = {
     vz: number;
 };
 
-export type UniversityNode = RawUniversityNode & { prod_count: number };
+export type UniversityNode = Omit<RawUniversityNode, 'prod_count'> & {
+    prod_count: number;
+};
 
-export type LinkType = {
-    source: UniversityNode | string;
-    target: UniversityNode | string;
+export type LinkDefinition = {
+    source: string;
+    target: string;
     collabs_count: number;
 };
+
+export type Link = {
+    source: UniversityNode;
+    target: UniversityNode;
+    collabs_count: number;
+};
+
+export type LinkLike = LinkDefinition | Link;
 
 //                     //
 // NEO4J CONFIGURATION //
