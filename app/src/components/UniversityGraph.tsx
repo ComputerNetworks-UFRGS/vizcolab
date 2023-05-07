@@ -16,6 +16,7 @@ import {
     setCenterForce,
     setChargeForce,
     setLinkForce,
+    setZoomLevel,
     sphereRadius,
 } from '../helpers/graph_helper';
 import {
@@ -82,10 +83,11 @@ const Graph = forwardRef<{}, { sharedState?: SharedState | null }>(
         }, [data]);
 
         useEffect(() => {
+            setLinkForce(fgRef.current, 0.05);
+            setChargeForce(fgRef.current, -500);
+            setCenterForce(fgRef.current, 1);
+            setZoomLevel(fgRef.current, 3500);
             if (props.sharedState) {
-                setLinkForce(fgRef.current, 0.05);
-                setChargeForce(fgRef.current, -500);
-                setCenterForce(fgRef.current, 1);
                 const linkDefinitions: LinkDefinition[] =
                     props.sharedState.state.graphData.links.map((link) => {
                         return {
