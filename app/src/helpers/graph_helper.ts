@@ -1,5 +1,16 @@
 import { forceCenter, forceLink, forceManyBody } from 'd3-force-3d';
-import { HexColor, LinkLike, UniversityNode } from './neo4j_helper';
+import { Link, Node, SimulationOutputNode } from './neo4j_helper';
+
+export type CameraPosition = {
+    x: number;
+    y: number;
+    z: number;
+};
+
+export type GraphData<T> = {
+    nodes: Node<T>[];
+    links: Link<T>[];
+};
 
 // Set camera distance from the center of the graph
 export function setZoomLevel(forceGraph, distance) {
@@ -34,12 +45,12 @@ export function sphereRadius(volume) {
 }
 
 export function getCaptionDict(
-    data: { nodes: UniversityNode[]; links: LinkLike[] },
-    colorByProperty: string,
+    data: { nodes: SimulationOutputNode<any>[] },
+    colorBy: string,
 ) {
-    const captionData: Record<string, HexColor> = {};
+    const captionData = {};
     for (let node of data.nodes) {
-        captionData[node[colorByProperty] || 'NÃO INFORMADO'] = node.color;
+        captionData[node[colorBy] || 'NÃO INFORMADO'] = node.color;
     }
     return captionData;
 }

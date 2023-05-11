@@ -1,43 +1,60 @@
 import neo4j from 'neo4j-driver';
+import { GraphData } from './graph_helper';
 
-export type HexColor = `#${string}`;
-
-export type RawUniversityNode = {
-    uf: string;
-    full_name: string;
-    city: string;
-    prod_count: string;
-    name: string;
-    legal_status: string;
+export type AbstractNodeBase = {
     id: string;
-    region: string;
-    color: HexColor;
-    index: number;
-    x: number;
-    y: number;
-    z: number;
-    vx: number;
-    vy: number;
-    vz: number;
-};
-
-export type UniversityNode = Omit<RawUniversityNode, 'prod_count'> & {
     prod_count: number;
 };
 
-export type LinkDefinition = {
+export type ThreeSimulationNodeBase = AbstractNodeBase & {
+    index?: number;
+    color?: string;
+    x?: number;
+    y?: number;
+    z?: number;
+    vx?: number;
+    vy?: number;
+    vz?: number;
+};
+
+export type SimulationInputNode<T> = T & AbstractNodeBase;
+export type SimulationOutputNode<T> = T & ThreeSimulationNodeBase;
+
+export type SimulationInputLink = {
     source: string;
     target: string;
     collabs_count: number;
 };
-
-export type Link = {
-    source: UniversityNode;
-    target: UniversityNode;
+export type SimulationOutputLink<T> = {
+    source: SimulationOutputNode<T>;
+    target: SimulationOutputNode<T>;
     collabs_count: number;
 };
 
-export type LinkLike = LinkDefinition | Link;
+export type Node<T> = SimulationInputNode<T> | SimulationOutputNode<T>;
+export type Link<T> = SimulationInputLink | SimulationOutputLink<T>;
+
+export const isNodeSimulationOutput = <T>(
+    n: Node<T>,
+): n is SimulationOutputNode<T> => n.hasOwnProperty('index');
+export const isLinkSimulationOutput = <T>(
+    l: Link<T>,
+): l is SimulationOutputLink<T> => typeof l.source !== 'string';
+
+export const isSimulationOutput = <T>(
+    data:
+        | {
+              nodes: Node<T>[];
+              links: Link<T>[];
+          }
+        | undefined,
+): data is {
+    nodes: SimulationOutputNode<T>[];
+    links: SimulationOutputLink<T>[];
+} =>
+    !!data &&
+    data.nodes.every(isNodeSimulationOutput) &&
+    data.links.every(isLinkSimulationOutput);
 
 //                     //
 // NEO4J CONFIGURATION //
@@ -72,7 +89,7 @@ function createSession() {
 // HELPER FUNCTIONS //
 //                  //
 
-async function runQuery(query) {
+export async function runQuery(query) {
     let result;
     const session = createSession();
 
@@ -88,28 +105,24 @@ async function runQuery(query) {
     return result.records;
 }
 
-function parseCollabsResults(
-    records: {
-        get(v: 'e1' | 'e2'): {
-            properties: RawUniversityNode;
-        };
-        get(v: 'collabs_count'): string;
-    }[],
-) {
+export function parseCollabsResults<T>(records: any[]): GraphData<T> {
     // That object is used to avoid duplicate nodes in the final array
-    const idToNode: Record<string, RawUniversityNode> = {};
+    const idToNode: Record<string, Node<T>> = {};
     const links = records.map((r) => {
         const e1 = r.get('e1').properties;
         const e2 = r.get('e2').properties;
         const collabs_count = r.get('collabs_count');
 
-        if (typeof e1.id !== 'string' || typeof e2.id !== 'string') {
-            e1.id = parseInt(e1.id).toString();
-            e2.id = parseInt(e2.id).toString();
-        }
+        e1.id = parseInt(e1.id).toString();
+        e2.id = parseInt(e2.id).toString();
 
+        e1.prod_count = parseInt(e1.prod_count);
+        e2.prod_count = parseInt(e2.prod_count);
+
+        // Avoid duplicates
         idToNode[e1.id] = e1;
         idToNode[e2.id] = e2;
+
         return {
             source: e1.id,
             target: e2.id,
@@ -117,10 +130,7 @@ function parseCollabsResults(
         };
     });
 
-    const nodes = Object.values(idToNode).map((node) => ({
-        ...node,
-        prod_count: parseInt(node.prod_count),
-    }));
+    const nodes = Object.values(idToNode);
 
     return { nodes, links };
 }
@@ -170,19 +180,6 @@ export async function getUniversityProgramsList(university) {
 //                                      //
 // GET COLLABORATION RELATIONSHIPS DATA //
 //                                      //
-
-// Universities collaborations
-export async function getUniversitiesCollabs(topConnectionsCount) {
-    const QUERY = `
-    MATCH (e1:University)-[r:COLLABORATES_WITH]-(e2:University)
-    WITH e1, e2, r.collabs_count as collabs_count
-    ORDER BY collabs_count DESC
-    WITH e1, collect({e2: e2, count: collabs_count}) as collabs
-    UNWIND collabs[0..${topConnectionsCount || 3}] as collab
-    RETURN e1, collab.e2 as e2, collab.count as collabs_count;
-  `;
-    return parseCollabsResults(await runQuery(QUERY));
-}
 
 // University programs collaborations
 export async function getProgramsCollabs(university, topConnectionsCount) {

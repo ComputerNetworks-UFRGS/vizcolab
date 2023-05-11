@@ -4,18 +4,17 @@ import './App.scss';
 import AuthorGraph from './components/AuthorGraph';
 import Header from './components/Header';
 import ProgramGraph from './components/ProgramGraph';
-import UniversityGraph from './components/UniversityGraph';
-import { Link, UniversityNode } from './helpers/neo4j_helper';
+import UniversityGraph from './components/UniversityGraph/UniversityGraph';
+import { CameraPosition, GraphData } from './helpers/graph_helper';
 
-export type CameraPosition = {
+export type SimulationNode = {
+    id: string;
     x: number;
     y: number;
     z: number;
-};
-
-export type GraphData = {
-    nodes: UniversityNode[];
-    links: Link[];
+    vx: number;
+    vy: number;
+    vz: number;
 };
 
 export enum GraphLevel {
@@ -26,7 +25,7 @@ export enum GraphLevel {
 
 export type AppState = {
     graphLevel: GraphLevel;
-    graphData: GraphData;
+    graphData: GraphData<any>;
     cameraPosition: CameraPosition;
     connectionDensity: number;
 };
@@ -36,6 +35,12 @@ export type SharedState = {
     state: AppState;
 };
 
+export type GraphRef = {
+    getViewState: () => AppState | undefined;
+};
+
+export type PropsOfShareableGraph = { sharedState?: SharedState };
+
 export const GlobalContext = React.createContext<Record<string, any>>({});
 
 function App() {
@@ -43,9 +48,7 @@ function App() {
     const [programs, setPrograms] = React.useState([]);
     const [author, setAuthor] = React.useState(undefined);
 
-    const graphRef = useRef<{
-        getViewState: () => AppState;
-    } | null>(null);
+    const graphRef = useRef<GraphRef>(null);
 
     const saveState = useCallback(async () => {
         if (!graphRef.current) return;
@@ -63,7 +66,7 @@ function App() {
 
     const sharedStateId = window.location.pathname.split('/shared/')[1];
 
-    const [sharedState, setSharedState] = useState<SharedState | null>(null);
+    const [sharedState, setSharedState] = useState<SharedState>();
 
     useEffect(() => {
         if (sharedStateId) {
@@ -91,7 +94,7 @@ function App() {
         sharedState,
     }: {
         level?: GraphLevel;
-        sharedState?: SharedState | null;
+        sharedState?: SharedState;
     }) {
         return (
             <>
