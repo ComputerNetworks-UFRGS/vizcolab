@@ -24,8 +24,8 @@ const UniversityNodeSchema = z
     .partial();
 
 const LinkSchema = z.object({
-    source: UniversityNodeSchema,
-    target: UniversityNodeSchema,
+    source: z.string(),
+    target: z.string(),
     collabs_count: z.number(),
 });
 
