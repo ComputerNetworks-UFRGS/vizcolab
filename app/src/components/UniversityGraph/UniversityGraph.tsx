@@ -43,8 +43,10 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         useState<Node<University>>();
     const [isLoading, setIsLoading] = useState(true);
     const [captionsDict, setCaptionsDict] = useState<Record<string, string>>();
-    const [connectionDensity, setConnectionDensity] = useState(3);
-    const [isFirstLoad, setIsFirstLoad] = useState(true);
+    const [connectionDensity, setConnectionDensity] = useState(
+        props.sharedState?.state.connectionDensity ?? 3,
+    );
+    const isFirstLoad = useRef(true);
     const fgRef =
         useRef<ForceGraphMethods<Node<University>, Link<Node<University>>>>();
     useImperativeHandle(
@@ -88,12 +90,10 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         setCenterForce(fgRef.current, 1);
         setZoomLevel(fgRef.current, 3500);
         if (props.sharedState && isFirstLoad) {
-            const { graphData, cameraPosition, connectionDensity } =
-                props.sharedState.state;
+            const { graphData, cameraPosition } = props.sharedState.state;
             setData(graphData);
             fgRef.current!.cameraPosition(cameraPosition);
-            setConnectionDensity(connectionDensity);
-            setIsFirstLoad(false);
+            isFirstLoad.current = false;
             setIsLoading(false);
             setTimeout(() => {
                 return setCaptionsDict(

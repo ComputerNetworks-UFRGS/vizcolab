@@ -43,8 +43,10 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     const [selectedProgram, setSelectedProgram] = useState<Node<Program>>();
     const [isLoading, setIsLoading] = useState(true);
     const [captionDict, setCaptionsDict] = useState<Record<string, string>>();
-    const [connectionDensity, setConnectionDensity] = useState(3);
-    const [isFirstLoad, setIsFirstLoad] = useState(true);
+    const [connectionDensity, setConnectionDensity] = useState(
+        props.sharedState?.state.connectionDensity ?? 3,
+    );
+    const isFirstLoad = useRef(true);
     const fgRef =
         useRef<ForceGraphMethods<Node<Program>, Link<Node<Program>>>>();
 
@@ -96,7 +98,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             fgRef.current!.cameraPosition(cameraPosition);
             setConnectionDensity(connectionDensity);
             setIsLoading(false);
-            setIsFirstLoad(false);
+            isFirstLoad.current = false;
             setTimeout(() => {
                 return setCaptionsDict(
                     getCaptionDict(graphData, COLOR_BY_PROP),
