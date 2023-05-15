@@ -34,19 +34,17 @@ import { University, getUniversitiesCollabs } from './data-fetching';
 const COLOR_BY_PROP = 'region';
 
 const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
-    const [data, setData] = useState<GraphData<University> | undefined>();
+    const [data, setData] = useState<GraphData<University>>();
     const [windowDimensions, setWindowDimensions] = useState({
         width: window.innerWidth,
         height: window.innerHeight,
     });
-    const [selectedUniversity, setSelectedUniversity] = useState<
-        Node<University> | undefined
-    >(undefined);
+    const [selectedUniversity, setSelectedUniversity] =
+        useState<Node<University>>();
     const [isLoading, setIsLoading] = useState(true);
-    const [captionsDict, setCaptionsDict] = useState<
-        Record<string, string> | undefined
-    >(undefined);
+    const [captionsDict, setCaptionsDict] = useState<Record<string, string>>();
     const [connectionDensity, setConnectionDensity] = useState(3);
+    const [isFirstLoad, setIsFirstLoad] = useState(true);
     const fgRef =
         useRef<ForceGraphMethods<Node<University>, Link<Node<University>>>>();
     useImperativeHandle(
@@ -89,10 +87,13 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         setChargeForce(fgRef.current, -500);
         setCenterForce(fgRef.current, 1);
         setZoomLevel(fgRef.current, 3500);
-        if (props.sharedState) {
-            const { graphData, cameraPosition } = props.sharedState.state;
+        if (props.sharedState && isFirstLoad) {
+            const { graphData, cameraPosition, connectionDensity } =
+                props.sharedState.state;
             setData(graphData);
             fgRef.current!.cameraPosition(cameraPosition);
+            setConnectionDensity(connectionDensity);
+            setIsFirstLoad(false);
             setIsLoading(false);
             setTimeout(() => {
                 return setCaptionsDict(
@@ -111,7 +112,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         }
     }, [connectionDensity, props.sharedState]);
 
-    const exploreNode = (node) => setUniversity(node.name);
+    const exploreNode = (node: Node<University>) => setUniversity(node.name);
 
     const handleNodeClick = (node, event) => {
         event.ctrlKey ? exploreNode(node) : setSelectedUniversity(node);

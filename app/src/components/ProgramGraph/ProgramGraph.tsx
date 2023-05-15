@@ -1,48 +1,81 @@
 import { faArrowLeft, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useEffect, useRef, useState } from 'react';
-import { ForceGraph3D } from 'react-force-graph';
+import React, {
+    forwardRef,
+    useEffect,
+    useImperativeHandle,
+    useRef,
+    useState,
+} from 'react';
+import ForceGraph3D, { ForceGraphMethods } from 'react-force-graph-3d';
 import SpriteText from 'three-spritetext';
-import { GlobalContext } from '../App';
 import {
+    GlobalContext,
+    GraphLevel,
+    GraphRef,
+    PropsOfShareableGraph,
+} from '../../App';
+import {
+    GraphData,
     getCaptionDict,
     setCenterForce,
     setChargeForce,
     setLinkForce,
     setZoomLevel,
     sphereRadius,
-} from '../helpers/graph_helper';
-import { getProgramsCollabs } from '../helpers/neo4j_helper';
-import DetailLevelSelector from './DetailLevelSelector';
-import GraphCaptions from './GraphCaptions';
-import NodeDetailsOverlay from './NodeDetailsOverlay';
+} from '../../helpers/graph_helper';
+import { Link, Node, isSimulationOutput } from '../../helpers/neo4j_helper';
+import DetailLevelSelector from '../DetailLevelSelector';
+import GraphCaptions from '../GraphCaptions';
+import NodeDetailsOverlay from '../NodeDetailsOverlay';
+import { Program, getProgramsCollabs } from './data-fetching';
 
 import * as THREE from 'three';
 
 const COLOR_BY_PROP = 'wide_knowledge_area';
 
-function Graph() {
-    const [data, setData] = useState({ nodes: [], links: [] });
+const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
+    const [data, setData] = useState<GraphData<Program>>();
     const [windowDimensions, setWindowDimensions] = useState({
         width: window.innerWidth,
         height: window.innerHeight,
     });
-    const [selectedProgram, setSelectedProgram] = useState(undefined);
+    const [selectedProgram, setSelectedProgram] = useState<Node<Program>>();
     const [isLoading, setIsLoading] = useState(true);
-    const [captionData, setCaptionData] = useState(undefined);
+    const [captionDict, setCaptionsDict] = useState<Record<string, string>>();
     const [connectionDensity, setConnectionDensity] = useState(3);
-    const fgRef = useRef();
+    const [isFirstLoad, setIsFirstLoad] = useState(true);
+    const fgRef =
+        useRef<ForceGraphMethods<Node<Program>, Link<Node<Program>>>>();
 
     const { university, setUniversity, setPrograms } =
         React.useContext(GlobalContext);
 
+    useImperativeHandle(
+        ref,
+        () => ({
+            getViewState: () => {
+                if (!fgRef.current || !isSimulationOutput(data)) {
+                    return;
+                }
+                const camera = fgRef.current.camera();
+                const linkDefinitions = data.links.map((l) => ({
+                    ...l,
+                    source: l.source.id,
+                    target: l.target.id,
+                }));
+                return {
+                    cameraPosition: camera.position,
+                    graphData: { ...data, links: linkDefinitions },
+                    connectionDensity: connectionDensity,
+                    graphLevel: GraphLevel.Programs,
+                };
+            },
+        }),
+        [data, connectionDensity],
+    );
+
     useEffect(() => {
-        setLinkForce(fgRef.current, 0.05);
-        setChargeForce(fgRef.current, -500);
-        setCenterForce(fgRef.current, 1);
-
-        setZoomLevel(fgRef.current, 1000);
-
         window.addEventListener('resize', () => {
             setWindowDimensions({
                 width: window.innerWidth,
@@ -52,15 +85,35 @@ function Graph() {
     }, []);
 
     useEffect(() => {
-        getProgramsCollabs(university, connectionDensity).then((data) => {
-            setData(data);
+        setLinkForce(fgRef.current, 0.05);
+        setChargeForce(fgRef.current, -500);
+        setCenterForce(fgRef.current, 1);
+
+        if (props.sharedState) {
+            const { graphData, cameraPosition, connectionDensity } =
+                props.sharedState.state;
+            setData(graphData);
+            fgRef.current!.cameraPosition(cameraPosition);
+            setConnectionDensity(connectionDensity);
             setIsLoading(false);
-            setTimeout(
-                () => setCaptionData(getCaptionDict(data, COLOR_BY_PROP)),
-                300,
-            );
-        });
-    }, [university, connectionDensity]);
+            setIsFirstLoad(false);
+            setTimeout(() => {
+                return setCaptionsDict(
+                    getCaptionDict(graphData, COLOR_BY_PROP),
+                );
+            }, 300);
+        } else {
+            setZoomLevel(fgRef.current, 1000);
+            getProgramsCollabs(university, connectionDensity).then((data) => {
+                setData(data);
+                setIsLoading(false);
+                setTimeout(
+                    () => setCaptionsDict(getCaptionDict(data, COLOR_BY_PROP)),
+                    300,
+                );
+            });
+        }
+    }, [university, connectionDensity, props.sharedState]);
 
     const handleBackButton = () => {
         setUniversity(null);
@@ -85,7 +138,7 @@ function Graph() {
             )}
 
             <section className="right-panel">
-                <GraphCaptions captionData={captionData} />
+                <GraphCaptions captionData={captionDict} />
                 {selectedProgram && (
                     <NodeDetailsOverlay
                         nodeType="PROGRAMA"
@@ -111,7 +164,7 @@ function Graph() {
                 setDensity={setConnectionDensity}
             />
 
-            <ForceGraph3D
+            <ForceGraph3D<Program, Link<Program>>
                 ref={fgRef}
                 width={windowDimensions.width}
                 height={windowDimensions.height - 50} // 50 is the height of the header
@@ -132,6 +185,7 @@ function Graph() {
 
                     const sprite = new SpriteText(node.name);
                     sprite.textHeight = 0.5 * radius;
+                    //@ts-ignore
                     sprite.position.set(0, -(2 * radius), 0);
 
                     group.add(sphere);
@@ -148,6 +202,6 @@ function Graph() {
             />
         </section>
     );
-}
+});
 
 export default Graph;

@@ -3,7 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.scss';
 import AuthorGraph from './components/AuthorGraph';
 import Header from './components/Header';
-import ProgramGraph from './components/ProgramGraph';
+import ProgramGraph from './components/ProgramGraph/ProgramGraph';
 import UniversityGraph from './components/UniversityGraph/UniversityGraph';
 import { CameraPosition, GraphData } from './helpers/graph_helper';
 
@@ -44,9 +44,10 @@ export type PropsOfShareableGraph = { sharedState?: SharedState };
 export const GlobalContext = React.createContext<Record<string, any>>({});
 
 function App() {
-    const [university, setUniversity] = React.useState(undefined);
-    const [programs, setPrograms] = React.useState([]);
+    const [university, setUniversity] = React.useState<string>();
+    const [programs, setPrograms] = React.useState<string[]>([]);
     const [author, setAuthor] = React.useState(undefined);
+    const [isLoading, setIsLoading] = React.useState(true);
 
     const graphRef = useRef<GraphRef>(null);
 
@@ -76,8 +77,11 @@ function App() {
                 );
                 const sharedState = await res.json();
                 setSharedState(sharedState);
+                setIsLoading(false);
             };
             loadState();
+        } else {
+            setIsLoading(false);
         }
     }, [sharedStateId]);
 
@@ -96,6 +100,8 @@ function App() {
         level?: GraphLevel;
         sharedState?: SharedState;
     }) {
+        if (isLoading) return <div>Loading...</div>;
+        console.log('Level is', level);
         return (
             <>
                 {level === GraphLevel.Authors && (
