@@ -1,7 +1,9 @@
 import { faCircleNodes, faShare } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import Modal from 'react-modal';
+import { useNavigate } from 'react-router-dom';
+import { GlobalContext } from '../App';
 import ProgramSelector from './ProgramSelector';
 
 Modal.setAppElement('#root'); // This line is required for accessibility reasons
@@ -10,6 +12,9 @@ const Header = ({ onShare }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [shareUrl, setShareUrl] = useState<string | null>(null);
+    const { setUniversity, setPrograms, setAuthor, setSharedState } =
+        React.useContext(GlobalContext);
+    const navigate = useNavigate();
 
     const handleShare = async () => {
         setIsLoading(true);
@@ -29,10 +34,18 @@ const Header = ({ onShare }) => {
         setShareUrl(null);
     };
 
+    const goToHome = () => {
+        setUniversity(undefined);
+        setPrograms([]);
+        setAuthor(undefined);
+        setSharedState(undefined);
+        navigate('/');
+    };
+
     return (
         <section className="header">
             <div className="right">
-                <div className="logo">
+                <div className="logo" onClick={goToHome}>
                     <FontAwesomeIcon icon={faCircleNodes} />
                     <span>
                         <b>Viz</b>Colab
