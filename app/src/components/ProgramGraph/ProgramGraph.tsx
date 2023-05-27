@@ -30,6 +30,7 @@ import GraphCaptions from '../GraphCaptions';
 import NodeDetailsOverlay from '../NodeDetailsOverlay';
 import { Program, getProgramsCollabs } from './data-fetching';
 
+import { useNavigate } from 'react-router-dom';
 import * as THREE from 'three';
 
 const COLOR_BY_PROP = 'wide_knowledge_area';
@@ -46,11 +47,10 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     const [connectionDensity, setConnectionDensity] = useState(
         props.sharedState?.state.connectionDensity ?? 3,
     );
-    const isFirstLoad = useRef(true);
     const fgRef =
         useRef<ForceGraphMethods<Node<Program>, Link<Node<Program>>>>();
 
-    const { university, setUniversity, setPrograms } =
+    const { university, setUniversity, setPrograms, setSharedState } =
         React.useContext(GlobalContext);
 
     useImperativeHandle(
@@ -71,10 +71,11 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     graphData: { ...data, links: linkDefinitions },
                     connectionDensity: connectionDensity,
                     graphLevel: GraphLevel.Programs,
+                    university,
                 };
             },
         }),
-        [data, connectionDensity],
+        [data, connectionDensity, university],
     );
 
     useEffect(() => {
@@ -98,7 +99,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             fgRef.current!.cameraPosition(cameraPosition);
             setConnectionDensity(connectionDensity);
             setIsLoading(false);
-            isFirstLoad.current = false;
+            setUniversity(props.sharedState.state.university);
             setTimeout(() => {
                 return setCaptionsDict(
                     getCaptionDict(graphData, COLOR_BY_PROP),
@@ -115,13 +116,26 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 );
             });
         }
-    }, [university, connectionDensity, props.sharedState]);
+    }, [university, connectionDensity, props.sharedState, setUniversity]);
+
+    const navigate = useNavigate();
 
     const handleBackButton = () => {
         setUniversity(null);
+        setSharedState(null);
+        navigate('/');
     };
 
-    const exploreNode = (node) => setPrograms([node.name]);
+    const exploreNode = (node) => {
+        window.history.replaceState(
+            null,
+            `VizColab | Visualização de uma rede de colaboração acadêmica brasileira gerada a
+            partir de dados da CAPES`,
+            '/',
+        );
+        setSharedState(null);
+        return setPrograms([node.name]);
+    };
 
     const handleNodeClick = (node, event) => {
         event.ctrlKey ? exploreNode(node) : setSelectedProgram(node);

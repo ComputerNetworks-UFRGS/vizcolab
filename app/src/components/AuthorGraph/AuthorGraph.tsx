@@ -1,44 +1,94 @@
 import { faArrowLeft, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useEffect, useRef, useState } from 'react';
-import { ForceGraph3D } from 'react-force-graph';
+import React, {
+    forwardRef,
+    useEffect,
+    useImperativeHandle,
+    useRef,
+    useState,
+} from 'react';
+import ForceGraph3D, { ForceGraphMethods } from 'react-force-graph-3d';
 import * as THREE from 'three';
 import SpriteText from 'three-spritetext';
-import { GlobalContext } from '../App';
 import {
-    getCaptionDict,
+    GlobalContext,
+    GraphLevel,
+    GraphRef,
+    PropsOfShareableGraph,
+} from '../../App';
+import {
+    GraphData,
     setCenterForce,
     setChargeForce,
     setLinkForce,
     setZoomLevel,
     sphereRadius,
-} from '../helpers/graph_helper';
-import { getAuthorData, getAuthorsCollabs } from '../helpers/neo4j_helper';
-import DetailLevelSelector from './DetailLevelSelector';
-import NodeDetailsOverlay from './NodeDetailsOverlay';
+} from '../../helpers/graph_helper';
+import { Link, Node, isSimulationOutput } from '../../helpers/neo4j_helper';
+import DetailLevelSelector from '../DetailLevelSelector';
+import NodeDetailsOverlay from '../NodeDetailsOverlay';
+import { Author, getAuthorData, getAuthorsCollabs } from './data-fetching';
 
 const COLOR_BY_PROP = 'research_line';
 
-function AuthorGraph() {
-    const [data, setData] = useState({ nodes: [], links: [] });
-    const [authorData, setAuthorData] = useState(undefined);
-    const [selectedAuthor, setSelectedAuthor] = useState(undefined);
+const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
+    const [data, setData] = useState<GraphData<Author>>();
+    const [authorData, setAuthorData] = useState<GraphData<Author>>();
+    const [selectedAuthor, setSelectedAuthor] = useState<Node<Author> | null>();
     const [windowDimensions, setWindowDimensions] = useState({
         width: window.innerWidth,
         height: window.innerHeight,
     });
     const [isLoading, setIsLoading] = useState(true);
-    const [captionData, setCaptionData] = useState(undefined);
-    const [connectionDensity, setConnectionDensity] = useState(3);
-    const fgRef = useRef();
+    const [connectionDensity, setConnectionDensity] = useState(
+        props.sharedState?.state.connectionDensity ?? 3,
+    );
+    const fgRef = useRef<ForceGraphMethods<Node<Author>, Link<Node<Author>>>>();
 
-    const { university, programs, setPrograms, author, setAuthor } =
-        React.useContext(GlobalContext);
+    const {
+        university,
+        setUniversity,
+        programs,
+        setPrograms,
+        author,
+        setAuthor,
+        setSharedState,
+    } = React.useContext(GlobalContext);
+
+    useImperativeHandle(
+        ref,
+        () => ({
+            getViewState: () => {
+                if (!fgRef.current || !data) {
+                    return;
+                }
+                const camera = fgRef.current.camera();
+                const graphData = isSimulationOutput(data)
+                    ? {
+                          ...data,
+                          links: data.links.map((l) => ({
+                              ...l,
+                              source: l.source.id,
+                              target: l.target.id,
+                          })),
+                      }
+                    : data;
+
+                return {
+                    cameraPosition: camera.position,
+                    graphData,
+                    connectionDensity: connectionDensity,
+                    graphLevel: GraphLevel.Authors,
+                    author,
+                    programs,
+                    university,
+                };
+            },
+        }),
+        [data, connectionDensity, author, university, programs],
+    );
 
     useEffect(() => {
-        setChargeForce(fgRef.current, -500, 600);
-        setCenterForce(fgRef.current, 1);
-
         window.addEventListener('resize', () => {
             setWindowDimensions({
                 width: window.innerWidth,
@@ -48,17 +98,42 @@ function AuthorGraph() {
     }, []);
 
     useEffect(() => {
-        getAuthorsCollabs(university, programs, connectionDensity).then(
-            (data) => {
-                setData(data);
-                setIsLoading(false);
-                setTimeout(
-                    () => setCaptionData(getCaptionDict(data, COLOR_BY_PROP)),
-                    500,
-                );
-            },
-        );
-    }, [university, programs, connectionDensity]);
+        setChargeForce(fgRef.current, -500, 600);
+        setCenterForce(fgRef.current, 1);
+        if (props.sharedState && !programs.length && !author && !university) {
+            console.log("I'm here");
+            const { graphData, cameraPosition, author, university, programs } =
+                props.sharedState.state;
+            setData(graphData);
+            fgRef.current!.cameraPosition(cameraPosition);
+            if (university) {
+                setUniversity(university);
+            }
+            if (author) {
+                setAuthor(author);
+            }
+            if (programs?.length) {
+                setPrograms(props.sharedState.state.programs);
+            }
+            setIsLoading(false);
+        } else {
+            getAuthorsCollabs(university, programs, connectionDensity).then(
+                (data) => {
+                    setData(data);
+                    setIsLoading(false);
+                },
+            );
+        }
+    }, [
+        university,
+        programs,
+        connectionDensity,
+        props.sharedState,
+        setUniversity,
+        setAuthor,
+        setPrograms,
+        author,
+    ]);
 
     useEffect(() => {
         if (author) {
@@ -86,11 +161,21 @@ function AuthorGraph() {
             setAuthor(null);
             setSelectedAuthor(null);
         } else {
+            setSharedState(undefined);
             setPrograms([]);
         }
     };
 
-    const exploreNode = (node) => setAuthor(node);
+    const exploreNode = (node) => {
+        window.history.replaceState(
+            null,
+            `VizColab | Visualização de uma rede de colaboração acadêmica brasileira gerada a
+            partir de dados da CAPES`,
+            '/',
+        );
+        setSharedState(null);
+        return setAuthor(node);
+    };
 
     const handleNodeClick = (node, event) => {
         event.ctrlKey ? exploreNode(node) : setSelectedAuthor(node);
@@ -109,7 +194,6 @@ function AuthorGraph() {
             </div>
 
             <section className="right-panel">
-                {/* <GraphLegend captionData={captionData}/> */}
                 {selectedAuthor && (
                     <NodeDetailsOverlay
                         nodeType="AUTOR"
@@ -140,7 +224,7 @@ function AuthorGraph() {
                 />
             )}
 
-            <ForceGraph3D
+            <ForceGraph3D<Author, Link<Author>>
                 ref={fgRef}
                 width={windowDimensions.width}
                 height={windowDimensions.height - 50} // 50 is the height of the header
@@ -166,6 +250,7 @@ function AuthorGraph() {
 
                     const sprite = new SpriteText(node.name);
                     sprite.textHeight = 0.5 * radius;
+                    //@ts-ignore
                     sprite.position.set(0, -(2 * radius), 0);
 
                     group.add(sphere);
@@ -182,6 +267,6 @@ function AuthorGraph() {
             />
         </section>
     );
-}
+});
 
-export default AuthorGraph;
+export default Graph;

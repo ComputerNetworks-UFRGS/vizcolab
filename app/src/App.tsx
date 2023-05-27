@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.scss';
-import AuthorGraph from './components/AuthorGraph';
+import AuthorGraph from './components/AuthorGraph/AuthorGraph';
+import { Author } from './components/AuthorGraph/data-fetching';
 import Header from './components/Header';
 import ProgramGraph from './components/ProgramGraph/ProgramGraph';
 import UniversityGraph from './components/UniversityGraph/UniversityGraph';
 import { CameraPosition, GraphData } from './helpers/graph_helper';
+import { Node } from './helpers/neo4j_helper';
 
 export type SimulationNode = {
     id: string;
@@ -28,6 +30,9 @@ export type AppState = {
     graphData: GraphData<any>;
     cameraPosition: CameraPosition;
     connectionDensity: number;
+    university?: string;
+    programs?: string[];
+    author?: string | Node<Author>;
 };
 
 export type SharedState = {
@@ -55,6 +60,7 @@ function App() {
         if (!graphRef.current) return;
 
         const data = graphRef.current.getViewState();
+        if (!data) return;
         const res = await fetch('http://localhost:3001/state', {
             method: 'POST',
             headers: {
@@ -143,6 +149,7 @@ function App() {
                 setPrograms,
                 author,
                 setAuthor,
+                setSharedState,
             }}
         >
             <BrowserRouter>

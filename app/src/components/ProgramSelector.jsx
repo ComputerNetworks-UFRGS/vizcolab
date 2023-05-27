@@ -10,7 +10,7 @@ function ProgramSelector() {
     const [universitiesList, setUniversitiesList] = React.useState([]);
     const [programsList, setProgramsList] = React.useState([]);
 
-    const { university, setUniversity, programs, setPrograms } =
+    const { university, setUniversity, programs, setPrograms, setSharedState } =
         React.useContext(GlobalContext);
 
     useEffect(() => {
@@ -35,7 +35,15 @@ function ProgramSelector() {
                     placeholder="Selecione uma universidade"
                     busy={universitiesList.length === 0}
                     value={university}
-                    onChange={setUniversity}
+                    onChange={(c) => {
+                        window.history.replaceState(
+                            null,
+                            `VizColab | Visualização de uma rede de colaboração acadêmica brasileira gerada a partir de dados da CAPES`,
+                            '/',
+                        );
+                        setSharedState(null);
+                        setUniversity(c);
+                    }}
                     data={universitiesList}
                 />
             </div>
@@ -46,7 +54,15 @@ function ProgramSelector() {
                         placeholder="Selecione os programas"
                         busy={programsList.length === 0}
                         value={programs}
-                        onChange={setPrograms}
+                        onChange={(c) => {
+                            window.history.replaceState(
+                                null,
+                                `VizColab | Visualização de uma rede de colaboração acadêmica brasileira gerada a partir de dados da CAPES`,
+                                '/',
+                            );
+                            setSharedState(null);
+                            setPrograms(c);
+                        }}
                         data={programsList}
                     />
                 </div>

@@ -45,6 +45,20 @@ const ProgramNodeSchema = NodeSchema.extend({
     .partial()
     .passthrough();
 
+const AuthorNodeSchema = NodeSchema.extend({
+    abnt_name: z.string(),
+    capes_id: z.object({ high: z.number(), low: z.number() }),
+    id_ies_program: z.string(),
+    ies_program: z.string(),
+    knowledge_area: z.string(),
+    name: z.string(),
+    research_line: z.string(),
+    type: z.string(),
+    university: z.string(),
+})
+    .partial()
+    .passthrough();
+
 export const graphStates = pgTable('graph_states', {
     id: serial('id').primaryKey(),
     state: jsonb('state'),
@@ -61,10 +75,14 @@ export const graphStateInsertSchema = createInsertSchema(graphStates, {
             nodes: z.union([
                 z.array(UniversityNodeSchema),
                 z.array(ProgramNodeSchema),
+                z.array(AuthorNodeSchema),
             ]),
             links: z.array(LinkSchema),
         }),
         graphLevel: z.enum(['universities', 'programs', 'authors']),
         connectionDensity: z.number().min(1).max(7),
+        university: z.any().nullish(),
+        programs: z.array(z.string()).nullish(),
+        author: z.any(),
     }),
 });

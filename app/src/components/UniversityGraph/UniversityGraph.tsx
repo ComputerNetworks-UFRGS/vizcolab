@@ -73,7 +73,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         [data, connectionDensity],
     );
 
-    const { setUniversity } = React.useContext(GlobalContext);
+    const { setUniversity, setSharedState } = React.useContext(GlobalContext);
 
     useEffect(() => {
         window.addEventListener('resize', () => {
@@ -89,7 +89,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         setChargeForce(fgRef.current, -500);
         setCenterForce(fgRef.current, 1);
         setZoomLevel(fgRef.current, 3500);
-        if (props.sharedState && isFirstLoad) {
+        if (props.sharedState && isFirstLoad.current) {
             const { graphData, cameraPosition } = props.sharedState.state;
             setData(graphData);
             fgRef.current!.cameraPosition(cameraPosition);
@@ -112,7 +112,16 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         }
     }, [connectionDensity, props.sharedState]);
 
-    const exploreNode = (node: Node<University>) => setUniversity(node.name);
+    const exploreNode = (node: Node<University>) => {
+        window.history.replaceState(
+            null,
+            `VizColab | Visualização de uma rede de colaboração acadêmica brasileira gerada a
+            partir de dados da CAPES`,
+            '/',
+        );
+        setSharedState(undefined);
+        return setUniversity(node.name);
+    };
 
     const handleNodeClick = (node, event) => {
         event.ctrlKey ? exploreNode(node) : setSelectedUniversity(node);

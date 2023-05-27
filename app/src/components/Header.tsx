@@ -29,20 +29,6 @@ const Header = ({ onShare }) => {
         setShareUrl(null);
     };
 
-    const customStyles = {
-        content: {
-            top: '50%',
-            left: '50%',
-            right: 'auto',
-            bottom: 'auto',
-            marginRight: '-50%',
-            transform: 'translate(-50%, -50%)',
-            maxWidth: '500px',
-            maxHeight: '500px',
-            outline: '30px solid red',
-        },
-    };
-
     return (
         <section className="header">
             <div className="right">
