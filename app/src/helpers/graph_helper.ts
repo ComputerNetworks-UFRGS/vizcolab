@@ -48,8 +48,6 @@ export function getCaptionDict(
     data: { nodes: SimulationOutputNode<any>[] },
     colorBy: string,
 ) {
-    console.log('COLOR BY: ', colorBy);
-    console.log(data);
     const captionData = {};
     for (let node of data.nodes) {
         captionData[node[colorBy] || 'NÃO INFORMADO'] = node.color;

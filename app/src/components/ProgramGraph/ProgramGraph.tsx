@@ -169,6 +169,10 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                             Especialidade: selectedProgram.specialty,
                             'Área de Avaliação': selectedProgram.rating_area,
                             'Número de Produções': selectedProgram.prod_count,
+                            'Centralidade de Grau':
+                                selectedProgram.degree_centrality,
+                            'Centralidade de Intermediação':
+                                selectedProgram.betweenness_centrality,
                         }}
                         exploreNode={() => exploreNode(selectedProgram)}
                     />
@@ -210,7 +214,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 }}
                 linkColor="#d2dae2"
                 linkOpacity={0.2}
-                linkWidth={(node) => node.collabs_count / 5}
+                linkWidth={(link) => link.collabs_count / 2}
                 backgroundColor="#1e272e"
                 onNodeClick={handleNodeClick}
                 onBackgroundClick={() => setSelectedProgram(undefined)}

@@ -1,3 +1,4 @@
+import { difference, uniqWith } from 'lodash';
 import neo4j from 'neo4j-driver';
 import { GraphData } from './graph_helper';
 
@@ -108,7 +109,7 @@ export async function runQuery(query) {
 export function parseCollabsResults<T>(records: any[]): GraphData<T> {
     // That object is used to avoid duplicate nodes in the final array
     const idToNode: Record<string, Node<T>> = {};
-    const links = records.map((r) => {
+    let links = records.map((r) => {
         const e1 = r.get('e1').properties;
         const e2 = r.get('e2').properties;
         const collabs_count = r.get('collabs_count');
@@ -129,6 +130,12 @@ export function parseCollabsResults<T>(records: any[]): GraphData<T> {
             collabs_count: parseInt(collabs_count),
         };
     });
+
+    links = uniqWith(
+        links,
+        (a, b) =>
+            difference([a.source, a.target], [b.source, b.target]).length === 0,
+    );
 
     const nodes = Object.values(idToNode);
 

@@ -1,4 +1,6 @@
 import { parseCollabsResults, runQuery } from '../../helpers/neo4j_helper';
+var centrality = require('ngraph.centrality');
+var g = require('ngraph.graph')();
 
 export type Program = {
     name: string;
@@ -9,6 +11,8 @@ export type Program = {
     specialty: String;
     university: string;
     wide_knowledge_area: string;
+    betweenness_centrality: number;
+    degree_centrality: number;
 };
 
 // University programs collaborations
@@ -21,5 +25,22 @@ export async function getProgramsCollabs(university, topConnectionsCount) {
     UNWIND collabs[0..${topConnectionsCount || 3}] as collab
     RETURN e1, collab.e2 as e2, collab.count as collabs_count;
   `;
-    return parseCollabsResults<Program>(await runQuery(QUERY));
+    const graphData = parseCollabsResults<Program>(await runQuery(QUERY));
+
+    g.clear();
+
+    graphData.links.forEach((link) => {
+        if (link.source === 'NaN' || link.target === 'NaN') return;
+        g.addLink(link.source, link.target);
+    });
+
+    const betweennessCentralityDict = centrality.betweenness(g);
+    const degreeCentralityDict = centrality.degree(g);
+
+    graphData.nodes.forEach((node) => {
+        node.betweenness_centrality = betweennessCentralityDict[node.id];
+        node.degree_centrality = degreeCentralityDict[node.id];
+    });
+
+    return graphData;
 }

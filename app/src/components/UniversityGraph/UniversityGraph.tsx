@@ -149,6 +149,10 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                             Cidade: selectedUniversity.city,
                             'Número de Produções':
                                 selectedUniversity.prod_count,
+                            'Centralidade de Grau':
+                                selectedUniversity.degree_centrality,
+                            'Centralidade de Intermediação':
+                                selectedUniversity.betweenness_centrality,
                         }}
                         exploreNode={() => exploreNode(selectedUniversity)}
                     />

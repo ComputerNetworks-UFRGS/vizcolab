@@ -101,7 +101,6 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         setChargeForce(fgRef.current, -500, 600);
         setCenterForce(fgRef.current, 1);
         if (props.sharedState && !programs.length && !author && !university) {
-            console.log("I'm here");
             const { graphData, cameraPosition, author, university, programs } =
                 props.sharedState.state;
             setData(graphData);
@@ -205,6 +204,10 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                             Tipo: selectedAuthor.type,
                             'Nome ABNT': selectedAuthor.abnt_name,
                             'Número de Produções': selectedAuthor.prod_count,
+                            'Centralidade de Grau':
+                                selectedAuthor.degree_centrality,
+                            'Centralidade de Intermediação':
+                                selectedAuthor.betweenness_centrality,
                         }}
                         exploreNode={
                             !authorData || author.id !== selectedAuthor.id

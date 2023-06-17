@@ -1,4 +1,6 @@
 import { parseCollabsResults, runQuery } from '../../helpers/neo4j_helper';
+var centrality = require('ngraph.centrality');
+var g = require('ngraph.graph')();
 
 export type Author = {
     abnt_name: string;
@@ -10,6 +12,8 @@ export type Author = {
     research_line: string;
     type: string;
     university: string;
+    betweenness_centrality: number;
+    degree_centrality: number;
 };
 
 export async function getAuthorsCollabs(
@@ -26,7 +30,24 @@ export async function getAuthorsCollabs(
     UNWIND collabs[0..${topConnectionsCount || 3}] as collab
     RETURN e1, collab.e2 as e2, collab.count as collabs_count;
   `;
-    return parseCollabsResults<Author>(await runQuery(QUERY));
+    const graphData = parseCollabsResults<Author>(await runQuery(QUERY));
+
+    g.clear();
+
+    graphData.links.forEach((link) => {
+        if (link.source === 'NaN' || link.target === 'NaN') return;
+        g.addLink(link.source, link.target);
+    });
+
+    const betweennessCentralityDict = centrality.betweenness(g);
+    const degreeCentralityDict = centrality.degree(g);
+
+    graphData.nodes.forEach((node) => {
+        node.betweenness_centrality = betweennessCentralityDict[node.id];
+        node.degree_centrality = degreeCentralityDict[node.id];
+    });
+
+    return graphData;
 }
 
 export async function getAuthorData(author_id) {
@@ -38,5 +59,22 @@ export async function getAuthorData(author_id) {
     RETURN e1, e2, r.collabs_count as collabs_count;
   `;
 
-    return parseCollabsResults<Author>(await runQuery(QUERY));
+    const graphData = parseCollabsResults<Author>(await runQuery(QUERY));
+
+    g.clear();
+
+    graphData.links.forEach((link) => {
+        if (link.source === 'NaN' || link.target === 'NaN') return;
+        g.addLink(link.source, link.target);
+    });
+
+    const betweennessCentralityDict = centrality.betweenness(g);
+    const degreeCentralityDict = centrality.degree(g);
+
+    graphData.nodes.forEach((node) => {
+        node.betweenness_centrality = betweennessCentralityDict[node.id];
+        node.degree_centrality = degreeCentralityDict[node.id];
+    });
+
+    return graphData;
 }

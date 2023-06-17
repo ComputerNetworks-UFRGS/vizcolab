@@ -1,4 +1,6 @@
 import { parseCollabsResults, runQuery } from '../../helpers/neo4j_helper';
+var centrality = require('ngraph.centrality');
+var g = require('ngraph.graph')();
 
 export type University = {
     uf: string;
@@ -7,6 +9,8 @@ export type University = {
     name: string;
     legal_status: string;
     region: string;
+    betweenness_centrality: number;
+    degree_centrality: number;
 };
 
 export async function getUniversitiesCollabs(topConnectionsCount: number) {
@@ -18,5 +22,22 @@ export async function getUniversitiesCollabs(topConnectionsCount: number) {
     UNWIND collabs[0..${topConnectionsCount || 3}] as collab
     RETURN e1, collab.e2 as e2, collab.count as collabs_count;
   `;
-    return parseCollabsResults<University>(await runQuery(QUERY));
+    const graphData = parseCollabsResults<University>(await runQuery(QUERY));
+
+    g.clear();
+
+    graphData.links.forEach((link) => {
+        if (link.source === 'NaN' || link.target === 'NaN') return;
+        g.addLink(link.source, link.target);
+    });
+
+    const betweennessCentralityDict = centrality.betweenness(g);
+    const degreeCentralityDict = centrality.degree(g);
+
+    graphData.nodes.forEach((node) => {
+        node.betweenness_centrality = betweennessCentralityDict[node.id];
+        node.degree_centrality = degreeCentralityDict[node.id];
+    });
+
+    return graphData;
 }
