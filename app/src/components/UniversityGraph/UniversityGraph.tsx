@@ -42,7 +42,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     const [selectedUniversity, setSelectedUniversity] =
         useState<Node<University>>();
     const [isLoading, setIsLoading] = useState(true);
-    const [captionsDict, setCaptionsDict] = useState<Record<string, string>>();
+    const [captionDict, setCaptionDict] = useState<Record<string, string>>();
     const [connectionDensity, setConnectionDensity] = useState(
         props.sharedState?.state.connectionDensity ?? 3,
     );
@@ -96,16 +96,14 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             isFirstLoad.current = false;
             setIsLoading(false);
             setTimeout(() => {
-                return setCaptionsDict(
-                    getCaptionDict(graphData, COLOR_BY_PROP),
-                );
+                return setCaptionDict(getCaptionDict(graphData, COLOR_BY_PROP));
             }, 300);
         } else {
             getUniversitiesCollabs(connectionDensity).then((data) => {
                 setData(data);
                 setIsLoading(false);
                 setTimeout(
-                    () => setCaptionsDict(getCaptionDict(data, COLOR_BY_PROP)),
+                    () => setCaptionDict(getCaptionDict(data, COLOR_BY_PROP)),
                     300,
                 );
             });
@@ -136,7 +134,17 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             )}
 
             <section className="right-panel">
-                <GraphCaptions captionData={captionsDict} />
+                <GraphCaptions
+                    captionDict={captionDict}
+                    nodesOrderedByBetweenness={data?.nodes.sort((a, b) => {
+                        return (
+                            b.betweenness_centrality - a.betweenness_centrality
+                        );
+                    })}
+                    nodesOrderedByDegree={data?.nodes.sort((a, b) => {
+                        return b.degree_centrality - a.degree_centrality;
+                    })}
+                />
                 {selectedUniversity && (
                     <NodeDetailsOverlay
                         nodeType="UNIVERSIDADE"

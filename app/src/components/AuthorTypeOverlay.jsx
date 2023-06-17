@@ -11,7 +11,7 @@ function AuthorTypeOverlay({ enabledTypes, setEnabledTypes }) {
     };
 
     return (
-        <div className="legend-overlay">
+        <div className="caption-overlay">
             <h1>Categorias</h1>
             <small>Clique em uma categoria para ocultá-la</small>
 
@@ -19,7 +19,7 @@ function AuthorTypeOverlay({ enabledTypes, setEnabledTypes }) {
                 <div
                     key={type}
                     onClick={() => toggleType(type)}
-                    className={`legend-item ${
+                    className={`caption-item ${
                         enabledTypes.includes(type) ? '' : ' disabled'
                     }`}
                 >

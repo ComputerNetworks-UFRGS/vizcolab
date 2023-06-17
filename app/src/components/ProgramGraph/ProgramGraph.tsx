@@ -43,7 +43,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     });
     const [selectedProgram, setSelectedProgram] = useState<Node<Program>>();
     const [isLoading, setIsLoading] = useState(true);
-    const [captionDict, setCaptionsDict] = useState<Record<string, string>>();
+    const [captionDict, setCaptionDict] = useState<Record<string, string>>();
     const [connectionDensity, setConnectionDensity] = useState(
         props.sharedState?.state.connectionDensity ?? 3,
     );
@@ -101,9 +101,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             setIsLoading(false);
             setUniversity(props.sharedState.state.university);
             setTimeout(() => {
-                return setCaptionsDict(
-                    getCaptionDict(graphData, COLOR_BY_PROP),
-                );
+                return setCaptionDict(getCaptionDict(graphData, COLOR_BY_PROP));
             }, 300);
         } else {
             setZoomLevel(fgRef.current, 1000);
@@ -111,7 +109,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 setData(data);
                 setIsLoading(false);
                 setTimeout(
-                    () => setCaptionsDict(getCaptionDict(data, COLOR_BY_PROP)),
+                    () => setCaptionDict(getCaptionDict(data, COLOR_BY_PROP)),
                     300,
                 );
             });
@@ -154,7 +152,17 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             )}
 
             <section className="right-panel">
-                <GraphCaptions captionData={captionDict} />
+                <GraphCaptions
+                    captionDict={captionDict}
+                    nodesOrderedByBetweenness={data?.nodes.sort((a, b) => {
+                        return (
+                            b.betweenness_centrality - a.betweenness_centrality
+                        );
+                    })}
+                    nodesOrderedByDegree={data?.nodes.sort((a, b) => {
+                        return b.degree_centrality - a.degree_centrality;
+                    })}
+                />
                 {selectedProgram && (
                     <NodeDetailsOverlay
                         nodeType="PROGRAMA"
