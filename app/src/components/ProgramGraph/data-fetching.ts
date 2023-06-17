@@ -37,9 +37,16 @@ export async function getProgramsCollabs(university, topConnectionsCount) {
     const betweennessCentralityDict = centrality.betweenness(g);
     const degreeCentralityDict = centrality.degree(g);
 
+    const numberOfNodes = graphData.nodes.length;
+    const numberOfPairsNotIncluding =
+        ((numberOfNodes - 1) * (numberOfNodes - 2)) / 2;
+    const numberOfPossibleLinks = numberOfNodes - 1;
+
     graphData.nodes.forEach((node) => {
-        node.betweenness_centrality = betweennessCentralityDict[node.id];
-        node.degree_centrality = degreeCentralityDict[node.id];
+        node.betweenness_centrality =
+            betweennessCentralityDict[node.id] / numberOfPairsNotIncluding;
+        node.degree_centrality =
+            degreeCentralityDict[node.id] / numberOfPossibleLinks;
     });
 
     return graphData;

@@ -44,7 +44,7 @@ function GraphCaptions({
                             <strong>{index + 1}</strong>.{' '}
                             {`${
                                 node.name
-                            }: ${node.betweenness_centrality.toFixed(2)}`}
+                            }: ${node.betweenness_centrality.toFixed(3)}`}
                         </span>
                     </div>
                 ));
@@ -55,7 +55,7 @@ function GraphCaptions({
                 <div key={node.name} className="caption-item">
                     <span className="type-name">
                         <strong>{index + 1}</strong>.{' '}
-                        {`${node.name}: ${node.degree_centrality.toFixed(2)}`}
+                        {`${node.name}: ${node.degree_centrality.toFixed(3)}`}
                     </span>
                 </div>
             ));
