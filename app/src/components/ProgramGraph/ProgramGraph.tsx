@@ -139,6 +139,14 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         event.ctrlKey ? exploreNode(node) : setSelectedProgram(node);
     };
 
+    const nodesOrderedByBetweenness = data?.nodes.sort((a, b) => {
+        return b.betweenness_centrality - a.betweenness_centrality;
+    });
+
+    const nodesOrderedByDegree = data?.nodes.sort((a, b) => {
+        return b.degree_centrality - a.degree_centrality;
+    });
+
     return (
         <section className="graph">
             <div className="back-button" onClick={handleBackButton}>
@@ -154,14 +162,8 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             <section className="right-panel">
                 <GraphCaptions
                     captionDict={captionDict}
-                    nodesOrderedByBetweenness={data?.nodes.sort((a, b) => {
-                        return (
-                            b.betweenness_centrality - a.betweenness_centrality
-                        );
-                    })}
-                    nodesOrderedByDegree={data?.nodes.sort((a, b) => {
-                        return b.degree_centrality - a.degree_centrality;
-                    })}
+                    nodesOrderedByBetweenness={nodesOrderedByBetweenness}
+                    nodesOrderedByDegree={nodesOrderedByDegree}
                 />
                 {selectedProgram && (
                     <NodeDetailsOverlay
@@ -177,10 +179,16 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                             Especialidade: selectedProgram.specialty,
                             'Área de Avaliação': selectedProgram.rating_area,
                             'Número de Produções': selectedProgram.prod_count,
-                            'Centralidade de Grau':
-                                selectedProgram.degree_centrality,
-                            'Centralidade de Intermediação':
-                                selectedProgram.betweenness_centrality,
+                            [`Centralidade de Grau (${
+                                nodesOrderedByDegree!.findIndex(
+                                    (n) => n.id === selectedProgram.id,
+                                ) + 1
+                            }º)`]: selectedProgram.degree_centrality,
+                            [`Centralidade de Intermediação (${
+                                nodesOrderedByBetweenness!.findIndex(
+                                    (n) => n.id === selectedProgram.id,
+                                ) + 1
+                            }º)`]: selectedProgram.betweenness_centrality,
                         }}
                         exploreNode={() => exploreNode(selectedProgram)}
                     />

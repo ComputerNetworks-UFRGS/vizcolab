@@ -180,6 +180,14 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         event.ctrlKey ? exploreNode(node) : setSelectedAuthor(node);
     };
 
+    const nodesOrderedByBetweenness = data?.nodes.sort((a, b) => {
+        return b.betweenness_centrality - a.betweenness_centrality;
+    });
+
+    const nodesOrderedByDegree = data?.nodes.sort((a, b) => {
+        return b.degree_centrality - a.degree_centrality;
+    });
+
     return (
         <section className="graph">
             {isLoading && (
@@ -204,10 +212,16 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                             Tipo: selectedAuthor.type,
                             'Nome ABNT': selectedAuthor.abnt_name,
                             'Número de Produções': selectedAuthor.prod_count,
-                            'Centralidade de Grau':
-                                selectedAuthor.degree_centrality,
-                            'Centralidade de Intermediação':
-                                selectedAuthor.betweenness_centrality,
+                            [`Centralidade de Grau (${
+                                nodesOrderedByDegree!.findIndex(
+                                    (n) => n.id === selectedAuthor.id,
+                                ) + 1
+                            }º)`]: selectedAuthor.degree_centrality,
+                            [`Centralidade de Intermediação (${
+                                nodesOrderedByBetweenness!.findIndex(
+                                    (n) => n.id === selectedAuthor.id,
+                                ) + 1
+                            }º)`]: selectedAuthor.betweenness_centrality,
                         }}
                         exploreNode={
                             !authorData || author.id !== selectedAuthor.id

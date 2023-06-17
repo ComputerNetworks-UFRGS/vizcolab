@@ -125,6 +125,14 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         event.ctrlKey ? exploreNode(node) : setSelectedUniversity(node);
     };
 
+    const nodesOrderedByBetweenness = data?.nodes.sort((a, b) => {
+        return b.betweenness_centrality - a.betweenness_centrality;
+    });
+
+    const nodesOrderedByDegree = data?.nodes.sort((a, b) => {
+        return b.degree_centrality - a.degree_centrality;
+    });
+
     return (
         <section className="graph">
             {isLoading && (
@@ -136,14 +144,8 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             <section className="right-panel">
                 <GraphCaptions
                     captionDict={captionDict}
-                    nodesOrderedByBetweenness={data?.nodes.sort((a, b) => {
-                        return (
-                            b.betweenness_centrality - a.betweenness_centrality
-                        );
-                    })}
-                    nodesOrderedByDegree={data?.nodes.sort((a, b) => {
-                        return b.degree_centrality - a.degree_centrality;
-                    })}
+                    nodesOrderedByBetweenness={nodesOrderedByBetweenness}
+                    nodesOrderedByDegree={nodesOrderedByDegree}
                 />
                 {selectedUniversity && (
                     <NodeDetailsOverlay
@@ -157,10 +159,16 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                             Cidade: selectedUniversity.city,
                             'Número de Produções':
                                 selectedUniversity.prod_count,
-                            'Centralidade de Grau':
-                                selectedUniversity.degree_centrality,
-                            'Centralidade de Intermediação':
-                                selectedUniversity.betweenness_centrality,
+                            [`Centralidade de Grau (${
+                                nodesOrderedByDegree!.findIndex(
+                                    (n) => selectedUniversity.name === n.name,
+                                ) + 1
+                            }º)`]: selectedUniversity.degree_centrality,
+                            [`Centralidade de Intermediação (${
+                                nodesOrderedByBetweenness!.findIndex(
+                                    (n) => selectedUniversity.name === n.name,
+                                ) + 1
+                            }º)`]: selectedUniversity.betweenness_centrality,
                         }}
                         exploreNode={() => exploreNode(selectedUniversity)}
                     />
