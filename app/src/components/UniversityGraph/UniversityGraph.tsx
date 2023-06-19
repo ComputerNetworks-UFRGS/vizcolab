@@ -125,11 +125,13 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         event.ctrlKey ? exploreNode(node) : setSelectedUniversity(node);
     };
 
-    const nodesOrderedByBetweenness = data?.nodes.sort((a, b) => {
-        return b.betweenness_centrality - a.betweenness_centrality;
-    });
+    const nodesOrderedByBetweenness = Array.from(data?.nodes ?? []).sort(
+        (a, b) => {
+            return b.betweenness_centrality - a.betweenness_centrality;
+        },
+    );
 
-    const nodesOrderedByDegree = data?.nodes.sort((a, b) => {
+    const nodesOrderedByDegree = Array.from(data?.nodes ?? []).sort((a, b) => {
         return b.degree_centrality - a.degree_centrality;
     });
 
