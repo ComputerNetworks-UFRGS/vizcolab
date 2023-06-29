@@ -29,6 +29,7 @@ import { Link, Node, isSimulationOutput } from '../../helpers/neo4j_helper';
 import DetailLevelSelector from '../DetailLevelSelector';
 import GraphCaptions from '../GraphCaptions';
 import NodeDetailsOverlay from '../NodeDetailsOverlay';
+import YearRangeSlider from '../YearRangeSlider';
 import { University, getUniversitiesCollabs } from './data-fetching';
 
 const COLOR_BY_PROP = 'region';
@@ -45,6 +46,9 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     const [captionDict, setCaptionDict] = useState<Record<string, string>>();
     const [connectionDensity, setConnectionDensity] = useState(
         props.sharedState?.state.connectionDensity ?? 3,
+    );
+    const [yearRange, setYearRange] = useState<[number, number]>(
+        props.sharedState?.state.yearRange ?? [2017, 2020],
     );
     const isFirstLoad = useRef(true);
     const fgRef =
@@ -99,16 +103,19 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 return setCaptionDict(getCaptionDict(graphData, COLOR_BY_PROP));
             }, 300);
         } else {
-            getUniversitiesCollabs(connectionDensity).then((data) => {
-                setData(data);
-                setIsLoading(false);
-                setTimeout(
-                    () => setCaptionDict(getCaptionDict(data, COLOR_BY_PROP)),
-                    300,
-                );
-            });
+            getUniversitiesCollabs(connectionDensity, yearRange).then(
+                (data) => {
+                    setData(data);
+                    setIsLoading(false);
+                    setTimeout(
+                        () =>
+                            setCaptionDict(getCaptionDict(data, COLOR_BY_PROP)),
+                        300,
+                    );
+                },
+            );
         }
-    }, [connectionDensity, props.sharedState]);
+    }, [connectionDensity, props.sharedState, yearRange]);
 
     const exploreNode = (node: Node<University>) => {
         window.history.replaceState(
@@ -171,11 +178,20 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                                     (n) => selectedUniversity.name === n.name,
                                 ) + 1
                             }º)`]: selectedUniversity.betweenness_centrality,
+                            'Produções por ano': JSON.stringify(
+                                //@ts-ignore
+                                selectedUniversity.prod_counts_per_year,
+                            ),
                         }}
                         exploreNode={() => exploreNode(selectedUniversity)}
                     />
                 )}
             </section>
+
+            <YearRangeSlider
+                yearRange={yearRange}
+                setYearRange={setYearRange}
+            />
 
             <DetailLevelSelector
                 density={connectionDensity}

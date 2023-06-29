@@ -30,6 +30,7 @@ export type AppState = {
     graphData: GraphData<any>;
     cameraPosition: CameraPosition;
     connectionDensity: number;
+    yearRange?: [number, number];
     university?: string;
     programs?: string[];
     author?: string | Node<Author>;

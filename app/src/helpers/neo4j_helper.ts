@@ -113,12 +113,17 @@ export function parseCollabsResults<T>(records: any[]): GraphData<T> {
         const e1 = r.get('e1').properties;
         const e2 = r.get('e2').properties;
         const collabs_count = r.get('collabs_count');
+        const e1_prod_count = r.get('e1_prod_count');
+        const e2_prod_count = r.get('e2_prod_count');
 
         e1.id = parseInt(e1.id).toString();
         e2.id = parseInt(e2.id).toString();
 
         e1.prod_count = parseInt(e1.prod_count);
         e2.prod_count = parseInt(e2.prod_count);
+
+        e1.prod_count = e1_prod_count;
+        e2.prod_count = e2_prod_count;
 
         // Avoid duplicates
         idToNode[e1.id] = e1;

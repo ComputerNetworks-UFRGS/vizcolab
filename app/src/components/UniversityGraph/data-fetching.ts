@@ -2,6 +2,8 @@ import { parseCollabsResults, runQuery } from '../../helpers/neo4j_helper';
 var centrality = require('ngraph.centrality');
 var g = require('ngraph.graph')();
 
+const FIRST_YEAR_IN_DATASET = 2017;
+
 export type University = {
     uf: string;
     full_name: string;
@@ -13,14 +15,32 @@ export type University = {
     degree_centrality: number;
 };
 
-export async function getUniversitiesCollabs(topConnectionsCount: number) {
+export async function getUniversitiesCollabs(
+    topConnectionsCount: number,
+    yearRange: [number, number],
+) {
+    const yearStartIndex = yearRange[0] - FIRST_YEAR_IN_DATASET;
+    const yearEndIndex = yearRange[1] - FIRST_YEAR_IN_DATASET;
+
     const QUERY = `
     MATCH (e1:University)-[r:COLLABORATES_WITH]-(e2:University)
-    WITH e1, e2, r.collabs_count as collabs_count
+    WITH e1, e2, 
+         apoc.coll.sum(r.collab_counts_per_year[${yearStartIndex}..${
+        yearEndIndex + 1
+    }]) as collabs_count,
+         apoc.coll.sum(e1.prod_counts_per_year[${yearStartIndex}..${
+        yearEndIndex + 1
+    }]) as e1_prod_count,
+         apoc.coll.sum(e2.prod_counts_per_year[${yearStartIndex}..${
+        yearEndIndex + 1
+    }]) as e2_prod_count
     ORDER BY collabs_count DESC
-    WITH e1, collect({e2: e2, count: collabs_count}) as collabs
-    UNWIND collabs[0..${topConnectionsCount || 3}] as collab
-    RETURN e1, collab.e2 as e2, collab.count as collabs_count;
+    WITH e1, e2, collabs_count, e1_prod_count, e2_prod_count
+    WITH e1, collect({e2: e2, count: collabs_count, e1_prod_count: e1_prod_count, e2_prod_count: e2_prod_count})[0..${
+        topConnectionsCount || 3
+    }] as collabs
+    UNWIND collabs as collab
+    RETURN e1 as e1, collab.e2 as e2, collab.count as collabs_count, collab.e1_prod_count as e1_prod_count, collab.e2_prod_count as e2_prod_count;
   `;
     const graphData = parseCollabsResults<University>(await runQuery(QUERY));
 

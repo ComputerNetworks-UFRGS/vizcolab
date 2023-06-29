@@ -220,8 +220,9 @@ $overlay-text-color: #ecf0f1;
                     &.selected {
                         transform: scale(1.2);
                         background-color: $detail-level-selector-color2;
-                        border: 2px solid $detail-level-selector-color1;
+                        border: 0px solid $detail-level-selector-color1;
                         box-sizing: border-box;
+                        box-shadow: 0px 0px 0.5px 0.25px #00000082;
                     }
                 }
             }
@@ -235,6 +236,21 @@ $overlay-text-color: #ecf0f1;
                     font-size: 1rem;
                 }
             }
+        }
+
+        .year-range-slider {
+            position: absolute;
+            bottom: 6rem;
+            left: 1rem;
+            z-index: 1;
+            font-size: 0.8rem;
+            color: $detail-level-selector-color1;
+            width: 10rem;
+            padding-left: 0.45rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         .back-button {

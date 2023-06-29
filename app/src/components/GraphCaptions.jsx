@@ -1,3 +1,5 @@
+import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useState } from 'react';
 
 function GraphCaptions({
@@ -69,8 +71,16 @@ function GraphCaptions({
             <h1 className="caption-header">
                 <div>{header}</div>
                 <div>
-                    <button onClick={decrementViewIndex}>&lt;</button>
-                    <button onClick={incrementViewIndex}>&gt;</button>
+                    <FontAwesomeIcon
+                        icon={faArrowLeft}
+                        onClick={decrementViewIndex}
+                        cursor={'pointer'}
+                    />{' '}
+                    <FontAwesomeIcon
+                        icon={faArrowRight}
+                        onClick={incrementViewIndex}
+                        cursor={'pointer'}
+                    />
                 </div>
             </h1>
 
