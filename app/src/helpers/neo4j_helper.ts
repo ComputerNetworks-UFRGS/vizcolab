@@ -2,6 +2,8 @@ import { difference, uniqWith } from 'lodash';
 import neo4j from 'neo4j-driver';
 import { GraphData } from './graph_helper';
 
+export const FIRST_YEAR_IN_DATASET = 2017;
+
 export type AbstractNodeBase = {
     id: string;
     prod_count: number;
@@ -142,7 +144,11 @@ export function parseCollabsResults<T>(records: any[]): GraphData<T> {
             difference([a.source, a.target], [b.source, b.target]).length === 0,
     );
 
-    const nodes = Object.values(idToNode);
+    links = links.filter((l) => l.collabs_count);
+
+    let nodes = Object.values(idToNode);
+
+    nodes = nodes.filter((n) => n.prod_count);
 
     return { nodes, links };
 }

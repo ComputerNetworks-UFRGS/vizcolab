@@ -32,11 +32,15 @@ import { Program, getProgramsCollabs } from './data-fetching';
 
 import { useNavigate } from 'react-router-dom';
 import * as THREE from 'three';
+import YearRangeSlider from '../YearRangeSlider';
 
 const COLOR_BY_PROP = 'wide_knowledge_area';
 
 const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     const [data, setData] = useState<GraphData<Program>>();
+    const [yearRange, setYearRange] = useState<[number, number]>(
+        props.sharedState?.state.yearRange ?? [2017, 2020],
+    );
     const [windowDimensions, setWindowDimensions] = useState({
         width: window.innerWidth,
         height: window.innerHeight,
@@ -105,16 +109,25 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             }, 300);
         } else {
             setZoomLevel(fgRef.current, 1000);
-            getProgramsCollabs(university, connectionDensity).then((data) => {
-                setData(data);
-                setIsLoading(false);
-                setTimeout(
-                    () => setCaptionDict(getCaptionDict(data, COLOR_BY_PROP)),
-                    300,
-                );
-            });
+            getProgramsCollabs(university, connectionDensity, yearRange).then(
+                (data) => {
+                    setData(data);
+                    setIsLoading(false);
+                    setTimeout(
+                        () =>
+                            setCaptionDict(getCaptionDict(data, COLOR_BY_PROP)),
+                        300,
+                    );
+                },
+            );
         }
-    }, [university, connectionDensity, props.sharedState, setUniversity]);
+    }, [
+        university,
+        connectionDensity,
+        props.sharedState,
+        setUniversity,
+        yearRange,
+    ]);
 
     const navigate = useNavigate();
 
@@ -197,6 +210,11 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 )}
             </section>
 
+            <YearRangeSlider
+                yearRange={yearRange}
+                setYearRange={setYearRange}
+            />
+
             <DetailLevelSelector
                 density={connectionDensity}
                 setDensity={setConnectionDensity}
@@ -232,7 +250,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 }}
                 linkColor="#d2dae2"
                 linkOpacity={0.2}
-                linkWidth={(link) => link.collabs_count / 2}
+                linkWidth={(link) => link.collabs_count / 4}
                 backgroundColor="#1e272e"
                 onNodeClick={handleNodeClick}
                 onBackgroundClick={() => setSelectedProgram(undefined)}

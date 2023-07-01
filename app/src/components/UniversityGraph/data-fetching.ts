@@ -1,8 +1,10 @@
-import { parseCollabsResults, runQuery } from '../../helpers/neo4j_helper';
+import {
+    FIRST_YEAR_IN_DATASET,
+    parseCollabsResults,
+    runQuery,
+} from '../../helpers/neo4j_helper';
 var centrality = require('ngraph.centrality');
 var g = require('ngraph.graph')();
-
-const FIRST_YEAR_IN_DATASET = 2017;
 
 export type University = {
     uf: string;

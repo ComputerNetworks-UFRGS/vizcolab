@@ -178,10 +178,6 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                                     (n) => selectedUniversity.name === n.name,
                                 ) + 1
                             }º)`]: selectedUniversity.betweenness_centrality,
-                            'Produções por ano': JSON.stringify(
-                                //@ts-ignore
-                                selectedUniversity.prod_counts_per_year,
-                            ),
                         }}
                         exploreNode={() => exploreNode(selectedUniversity)}
                     />
