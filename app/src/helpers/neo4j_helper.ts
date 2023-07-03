@@ -111,32 +111,42 @@ export async function runQuery(query) {
 export function parseCollabsResults<T>(records: any[]): GraphData<T> {
     // That object is used to avoid duplicate nodes in the final array
     const idToNode: Record<string, Node<T>> = {};
-    let links = records.map((r) => {
-        const e1 = r.get('e1').properties;
-        const e2 = r.get('e2').properties;
-        const collabs_count = r.get('collabs_count');
-        const e1_prod_count = r.get('e1_prod_count');
-        const e2_prod_count = r.get('e2_prod_count');
+    let links = records
+        .map((r) => {
+            const e1 = r.get('e1').properties;
+            const e2 = r.get('e2').properties;
+            const collabs_count = r.get('collabs_count');
+            const e1_prod_count = r.get('e1_prod_count');
+            const e2_prod_count = r.get('e2_prod_count');
 
-        e1.id = parseInt(e1.id).toString();
-        e2.id = parseInt(e2.id).toString();
+            if (!e1_prod_count || !e2_prod_count || !collabs_count) {
+                return null;
+            }
 
-        e1.prod_count = parseInt(e1.prod_count);
-        e2.prod_count = parseInt(e2.prod_count);
+            e1.id = parseInt(e1.id).toString();
+            e2.id = parseInt(e2.id).toString();
 
-        e1.prod_count = e1_prod_count;
-        e2.prod_count = e2_prod_count;
+            e1.prod_count = parseInt(e1.prod_count);
+            e2.prod_count = parseInt(e2.prod_count);
 
-        // Avoid duplicates
-        idToNode[e1.id] = e1;
-        idToNode[e2.id] = e2;
+            e1.prod_count = e1_prod_count;
+            e2.prod_count = e2_prod_count;
 
-        return {
-            source: e1.id,
-            target: e2.id,
-            collabs_count: parseInt(collabs_count),
-        };
-    });
+            // Avoid duplicates
+            idToNode[e1.id] = e1;
+            idToNode[e2.id] = e2;
+
+            return {
+                source: e1.id,
+                target: e2.id,
+                collabs_count: parseInt(collabs_count),
+            };
+        })
+        .filter(Boolean) as {
+        source: any;
+        target: any;
+        collabs_count: number;
+    }[];
 
     links = uniqWith(
         links,
@@ -144,11 +154,7 @@ export function parseCollabsResults<T>(records: any[]): GraphData<T> {
             difference([a.source, a.target], [b.source, b.target]).length === 0,
     );
 
-    links = links.filter((l) => l.collabs_count);
-
     let nodes = Object.values(idToNode);
-
-    nodes = nodes.filter((n) => n.prod_count);
 
     return { nodes, links };
 }
