@@ -1,4 +1,8 @@
-import { parseCollabsResults, runQuery } from '../../helpers/neo4j_helper';
+import {
+    FIRST_YEAR_IN_DATASET,
+    parseCollabsResults,
+    runQuery,
+} from '../../helpers/neo4j_helper';
 var centrality = require('ngraph.centrality');
 var g = require('ngraph.graph')();
 
@@ -20,15 +24,30 @@ export async function getAuthorsCollabs(
     university: string,
     ies_programs: string[],
     topConnectionsCount: number,
+    yearRange: [number, number],
 ) {
+    const yearStartIndex = yearRange[0] - FIRST_YEAR_IN_DATASET;
+    const yearEndIndex = yearRange[1] - FIRST_YEAR_IN_DATASET;
+
     const QUERY = `
     MATCH (e1:Author {university: "${university}"})-[r:CO_AUTHOR]-(e2:Author)
     WHERE e1.ies_program in ["${ies_programs.join('","')}"]
-    WITH e1, e2, r.collabs_count as collabs_count
+    WITH e1, e2, 
+         apoc.coll.sum(r.collab_counts_per_year[${yearStartIndex}..${
+        yearEndIndex + 1
+    }]) as collabs_count,
+         apoc.coll.sum(e1.prod_counts_per_year[${yearStartIndex}..${
+        yearEndIndex + 1
+    }]) as e1_prod_count,
+         apoc.coll.sum(e2.prod_counts_per_year[${yearStartIndex}..${
+        yearEndIndex + 1
+    }]) as e2_prod_count
     ORDER BY collabs_count DESC
-    WITH e1, collect({e2: e2, count: collabs_count}) as collabs
-    UNWIND collabs[0..${topConnectionsCount || 3}] as collab
-    RETURN e1, collab.e2 as e2, collab.count as collabs_count;
+    WITH e1, collect({e2: e2, count: collabs_count, e1_prod_count: e1_prod_count, e2_prod_count: e2_prod_count})[0..${
+        topConnectionsCount || 3
+    }] as collabs
+    UNWIND collabs as collab
+    RETURN e1 as e1, collab.e2 as e2, collab.count as collabs_count, collab.e1_prod_count as e1_prod_count, collab.e2_prod_count as e2_prod_count;
   `;
     const graphData = parseCollabsResults<Author>(await runQuery(QUERY));
 
@@ -57,13 +76,36 @@ export async function getAuthorsCollabs(
     return graphData;
 }
 
-export async function getAuthorData(author_id) {
+export async function getAuthorData(author_id, yearRange: [number, number]) {
+    const yearStartIndex = yearRange[0] - FIRST_YEAR_IN_DATASET;
+    const yearEndIndex = yearRange[1] - FIRST_YEAR_IN_DATASET;
+
     const QUERY = `
     MATCH (e1:Author {id: ${author_id}})-[r:CO_AUTHOR]-(e2:Author)
-    RETURN e1, e2, r.collabs_count as collabs_count
+    WITH e1, e2, 
+         apoc.coll.sum(r.collab_counts_per_year[${yearStartIndex}..${
+        yearEndIndex + 1
+    }]) as collabs_count,
+         apoc.coll.sum(e1.prod_counts_per_year[${yearStartIndex}..${
+        yearEndIndex + 1
+    }]) as e1_prod_count,
+         apoc.coll.sum(e2.prod_counts_per_year[${yearStartIndex}..${
+        yearEndIndex + 1
+    }]) as e2_prod_count
+    RETURN e1, e2, collabs_count, e1_prod_count, e2_prod_count
     UNION ALL
     MATCH (a:Author {id: ${author_id}})-[:CO_AUTHOR]-(e1:Author)-[r:CO_AUTHOR]-(e2:Author)-[:CO_AUTHOR]-(a)
-    RETURN e1, e2, r.collabs_count as collabs_count;
+    WITH e1, e2, 
+         apoc.coll.sum(r.collab_counts_per_year[${yearStartIndex}..${
+        yearEndIndex + 1
+    }]) as collabs_count,
+         apoc.coll.sum(e1.prod_counts_per_year[${yearStartIndex}..${
+        yearEndIndex + 1
+    }]) as e1_prod_count,
+         apoc.coll.sum(e2.prod_counts_per_year[${yearStartIndex}..${
+        yearEndIndex + 1
+    }]) as e2_prod_count
+    RETURN e1, e2, collabs_count, e1_prod_count, e2_prod_count;
   `;
 
     const graphData = parseCollabsResults<Author>(await runQuery(QUERY));

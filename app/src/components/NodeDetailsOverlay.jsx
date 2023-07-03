@@ -1,5 +1,6 @@
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { uniqWith } from 'lodash';
 import React from 'react';
 
 function NodeDetailsOverlay({
@@ -12,7 +13,12 @@ function NodeDetailsOverlay({
 }) {
     const topCollaborators =
         (authorData &&
-            authorData.links
+            uniqWith(authorData.links, (a, b) => {
+                if (a.target.id && b.target.id) {
+                    return a.target.id === b.target.id;
+                }
+                return a.target === b.target;
+            })
                 .sort((a, b) => b.collabs_count - a.collabs_count)
                 .slice(0, 5)
                 .map((link) => ({
@@ -50,33 +56,37 @@ function NodeDetailsOverlay({
                 </div>
             )}
             {topCollaborators.length > 0 && (
-                <div className="connections">
-                    <h2>PRINCIPAIS COLABORADORES</h2>
-                    {topCollaborators.length > 0 &&
-                        topCollaborators.map(
-                            ({ author, collabs_count }) =>
-                                author && (
-                                    <div className="line" key={author.id}>
-                                        <div>
-                                            <div
-                                                className="name"
-                                                onClick={() =>
-                                                    selectAuthor(author)
-                                                }
-                                            >
-                                                {author.name}
+                <>
+                    <br />
+                    <br />
+                    <div className="connections">
+                        <h2>PRINCIPAIS COLABORADORES</h2>
+                        {topCollaborators.length > 0 &&
+                            topCollaborators.map(
+                                ({ author, collabs_count }) =>
+                                    author && (
+                                        <div className="line" key={author.id}>
+                                            <div>
+                                                <div
+                                                    className="name"
+                                                    onClick={() =>
+                                                        selectAuthor(author)
+                                                    }
+                                                >
+                                                    {author.name}
+                                                </div>
+                                                <div className="university">
+                                                    {author.university}
+                                                </div>
                                             </div>
-                                            <div className="university">
-                                                {author.university}
+                                            <div className="collabs_count">
+                                                {collabs_count}
                                             </div>
                                         </div>
-                                        <div className="collabs_count">
-                                            {collabs_count}
-                                        </div>
-                                    </div>
-                                ),
-                        )}
-                </div>
+                                    ),
+                            )}
+                    </div>
+                </>
             )}
         </div>
     );

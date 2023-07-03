@@ -27,12 +27,16 @@ import {
 import { Link, Node, isSimulationOutput } from '../../helpers/neo4j_helper';
 import DetailLevelSelector from '../DetailLevelSelector';
 import NodeDetailsOverlay from '../NodeDetailsOverlay';
+import YearRangeSlider from '../YearRangeSlider';
 import { Author, getAuthorData, getAuthorsCollabs } from './data-fetching';
 
 const COLOR_BY_PROP = 'research_line';
 
 const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     const [data, setData] = useState<GraphData<Author>>();
+    const [yearRange, setYearRange] = useState<[number, number]>(
+        props.sharedState?.state.yearRange ?? [2017, 2020],
+    );
     const [authorData, setAuthorData] = useState<GraphData<Author>>();
     const [selectedAuthor, setSelectedAuthor] = useState<Node<Author> | null>();
     const [windowDimensions, setWindowDimensions] = useState({
@@ -116,12 +120,15 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             }
             setIsLoading(false);
         } else {
-            getAuthorsCollabs(university, programs, connectionDensity).then(
-                (data) => {
-                    setData(data);
-                    setIsLoading(false);
-                },
-            );
+            getAuthorsCollabs(
+                university,
+                programs,
+                connectionDensity,
+                yearRange,
+            ).then((data) => {
+                setData(data);
+                setIsLoading(false);
+            });
         }
     }, [
         university,
@@ -132,13 +139,14 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         setAuthor,
         setPrograms,
         author,
+        yearRange,
     ]);
 
     useEffect(() => {
         if (author) {
             setSelectedAuthor(author);
             setIsLoading(true);
-            getAuthorData(author.id).then((data) => {
+            getAuthorData(author.id, yearRange).then((data) => {
                 setAuthorData(data);
                 setIsLoading(false);
             });
@@ -153,7 +161,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             setZoomLevel(fgRef.current, 1000);
             setLinkForce(fgRef.current, 0.2);
         }
-    }, [author]);
+    }, [author, yearRange]);
 
     const handleBackButton = () => {
         if (author) {
@@ -235,6 +243,11 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     />
                 )}
             </section>
+
+            <YearRangeSlider
+                yearRange={yearRange}
+                setYearRange={setYearRange}
+            />
 
             {!authorData && (
                 <DetailLevelSelector
