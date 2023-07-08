@@ -7,6 +7,7 @@ import React, {
     useRef,
     useState,
 } from 'react';
+import { ForceGraph2D } from 'react-force-graph';
 import ForceGraph3D, { ForceGraphMethods } from 'react-force-graph-3d';
 import * as THREE from 'three';
 import SpriteText from 'three-spritetext';
@@ -14,6 +15,7 @@ import {
     GlobalContext,
     GraphLevel,
     GraphRef,
+    GraphRenderMode,
     PropsOfShareableGraph,
 } from '../../App';
 import {
@@ -90,9 +92,13 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
 
     useEffect(() => {
         setLinkForce(fgRef.current, 0.05);
-        setChargeForce(fgRef.current, -500);
         setCenterForce(fgRef.current, 1);
-        setZoomLevel(fgRef.current, 3500);
+        if (props.renderMode === GraphRenderMode._3D) {
+            setChargeForce(fgRef.current, -500);
+            setZoomLevel(fgRef.current, 3500);
+        } else {
+            setChargeForce(fgRef.current, -1500);
+        }
         if (props.sharedState && isFirstLoad.current) {
             const { graphData, cameraPosition } = props.sharedState.state;
             setData(graphData);
@@ -194,45 +200,100 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 setDensity={setConnectionDensity}
             />
 
-            <ForceGraph3D<University, Link<University>>
-                ref={fgRef}
-                width={windowDimensions.width}
-                height={windowDimensions.height - 50} // 50 is the height of the header
-                graphData={data}
-                nodeVal="prod_count"
-                nodeLabel="name"
-                nodeAutoColorBy={COLOR_BY_PROP}
-                nodeThreeObject={(node) => {
-                    const radius = sphereRadius(node.prod_count) * 1.5;
-                    const group = new THREE.Group();
-                    const geometry = new THREE.SphereGeometry(radius);
-                    const material = new THREE.MeshLambertMaterial({
-                        color: node.color,
-                        transparent: true,
-                        opacity: 0.9,
-                    });
-                    const sphere = new THREE.Mesh(geometry, material);
+            {props.renderMode === GraphRenderMode._3D ? (
+                <ForceGraph3D<University, Link<University>>
+                    ref={fgRef}
+                    width={windowDimensions.width}
+                    height={windowDimensions.height - 50} // 50 is the height of the header
+                    graphData={data}
+                    nodeVal="prod_count"
+                    nodeLabel="name"
+                    nodeAutoColorBy={COLOR_BY_PROP}
+                    nodeThreeObject={(node) => {
+                        const radius = sphereRadius(node.prod_count) * 1.5;
+                        const group = new THREE.Group();
+                        const geometry = new THREE.SphereGeometry(radius);
+                        const material = new THREE.MeshLambertMaterial({
+                            color: node.color,
+                            transparent: true,
+                            opacity: 0.9,
+                        });
+                        const sphere = new THREE.Mesh(geometry, material);
 
-                    const sprite = new SpriteText(node.name);
-                    sprite.textHeight = 0.5 * radius;
+                        const sprite = new SpriteText(node.name);
+                        sprite.textHeight = 0.5 * radius;
 
+                        //@ts-ignore
+                        sprite.position.set(0, -(2 * radius), 0);
+
+                        group.add(sphere);
+                        group.add(sprite);
+                        return group;
+                    }}
+                    linkColor="#d2dae2"
+                    linkOpacity={0.2}
+                    linkWidth={(link) => {
+                        return link.collabs_count / 150;
+                    }}
+                    backgroundColor="#1e272e"
+                    onNodeClick={handleNodeClick}
+                    onBackgroundClick={() => setSelectedUniversity(undefined)}
+                    enableNodeDrag={true}
+                />
+            ) : (
+                <ForceGraph2D<University, Link<University>>
                     //@ts-ignore
-                    sprite.position.set(0, -(2 * radius), 0);
+                    ref={fgRef}
+                    graphData={data}
+                    width={windowDimensions.width}
+                    height={windowDimensions.height - 50}
+                    nodeVal="prod_count"
+                    nodeLabel="name"
+                    nodeAutoColorBy={COLOR_BY_PROP}
+                    linkColor={() => '#d2dae2'}
+                    linkOpacity={0.2}
+                    linkWidth={(link) => {
+                        return link.collabs_count / 400 + 0.5;
+                    }}
+                    onNodeClick={handleNodeClick}
+                    onBackgroundClick={() => setSelectedUniversity(undefined)}
+                    enableNodeDrag={true}
+                    backgroundColor="#1E272E"
+                    nodeCanvasObject={(node, ctx) => {
+                        const label = node.name;
+                        const fontSize = 25;
+                        ctx.font = `${fontSize}px Sans-Serif`;
 
-                    group.add(sphere);
-                    group.add(sprite);
-                    return group;
-                }}
-                linkColor="#d2dae2"
-                linkOpacity={0.2}
-                linkWidth={(link) => {
-                    return link.collabs_count / 150;
-                }}
-                backgroundColor="#1e272e"
-                onNodeClick={handleNodeClick}
-                onBackgroundClick={() => setSelectedUniversity(undefined)}
-                enableNodeDrag={true}
-            />
+                        // Circle size could depend on a node property or just a constant
+                        const circleRadius = node.prod_count / 700 + 50;
+
+                        // Draw the circle
+                        ctx.beginPath();
+                        ctx.arc(
+                            node.x!,
+                            node.y!,
+                            circleRadius,
+                            0,
+                            2 * Math.PI,
+                            false,
+                        );
+                        ctx.fillStyle = node.color;
+                        ctx.fill();
+
+                        // Draw the label
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = 'white';
+
+                        // Add a border around the label
+                        ctx.strokeStyle = 'black'; // Border color
+                        ctx.lineWidth = 3; // Border width
+                        ctx.strokeText(label, node.x!, node.y!);
+
+                        ctx.fillText(label, node.x!, node.y!);
+                    }}
+                />
+            )}
         </section>
     );
 });

@@ -45,15 +45,26 @@ export type GraphRef = {
     getViewState: () => AppState | undefined;
 };
 
-export type PropsOfShareableGraph = { sharedState?: SharedState };
+export type PropsOfShareableGraph = {
+    sharedState?: SharedState;
+    renderMode: GraphRenderMode;
+};
 
 export const GlobalContext = React.createContext<Record<string, any>>({});
+
+export enum GraphRenderMode {
+    _3D = '3D',
+    _2D = '2D',
+}
 
 function App() {
     const [university, setUniversity] = React.useState<string>();
     const [programs, setPrograms] = React.useState<string[]>([]);
     const [author, setAuthor] = React.useState(undefined);
     const [isLoading, setIsLoading] = React.useState(true);
+    const [renderMode, setRenderMode] = useState<GraphRenderMode>(
+        GraphRenderMode._3D,
+    );
 
     const graphRef = useRef<GraphRef>(null);
 
@@ -108,17 +119,28 @@ function App() {
         sharedState?: SharedState;
     }) {
         if (isLoading) return <div>Loading...</div>;
-        console.log('Level is', level);
         return (
             <>
                 {level === GraphLevel.Authors && (
-                    <AuthorGraph ref={graphRef} sharedState={sharedState} />
+                    <AuthorGraph
+                        ref={graphRef}
+                        sharedState={sharedState}
+                        renderMode={renderMode}
+                    />
                 )}
                 {level === GraphLevel.Programs && (
-                    <ProgramGraph ref={graphRef} sharedState={sharedState} />
+                    <ProgramGraph
+                        ref={graphRef}
+                        sharedState={sharedState}
+                        renderMode={renderMode}
+                    />
                 )}
                 {(level === GraphLevel.Universities || !level) && (
-                    <UniversityGraph ref={graphRef} sharedState={sharedState} />
+                    <UniversityGraph
+                        ref={graphRef}
+                        sharedState={sharedState}
+                        renderMode={renderMode}
+                    />
                 )}
             </>
         );
@@ -155,7 +177,7 @@ function App() {
         >
             <BrowserRouter>
                 <div className="App">
-                    <Header onShare={saveState} />
+                    <Header onShare={saveState} setRenderMode={setRenderMode} />
                     <Graph />
                 </div>
             </BrowserRouter>

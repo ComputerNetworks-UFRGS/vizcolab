@@ -57,6 +57,23 @@ $overlay-text-color: #ecf0f1;
             b {
                 font-weight: 700;
             }
+
+            .mode-button {
+                background: none;
+                border: none;
+                color: black;
+                text-decoration: none;
+                display: inline-block;
+                font-family: 'Roboto';
+                font-size: 18px;
+                font-weight: bolder;
+                cursor: pointer;
+                transition-duration: 0.4s;
+            }
+
+            .trophy {
+                font-size: 17px;
+            }
         }
 
         .left {

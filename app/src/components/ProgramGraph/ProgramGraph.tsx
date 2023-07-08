@@ -13,6 +13,7 @@ import {
     GlobalContext,
     GraphLevel,
     GraphRef,
+    GraphRenderMode,
     PropsOfShareableGraph,
 } from '../../App';
 import {
@@ -30,6 +31,7 @@ import GraphCaptions from '../GraphCaptions';
 import NodeDetailsOverlay from '../NodeDetailsOverlay';
 import { Program, getProgramsCollabs } from './data-fetching';
 
+import { ForceGraph2D } from 'react-force-graph';
 import { useNavigate } from 'react-router-dom';
 import * as THREE from 'three';
 import YearRangeSlider from '../YearRangeSlider';
@@ -93,9 +95,13 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
 
     useEffect(() => {
         setLinkForce(fgRef.current, 0.05);
-        setChargeForce(fgRef.current, -500);
         setCenterForce(fgRef.current, 1);
-
+        if (props.renderMode === GraphRenderMode._3D) {
+            setChargeForce(fgRef.current, -500);
+            setZoomLevel(fgRef.current, 3500);
+        } else {
+            setChargeForce(fgRef.current, -1500);
+        }
         if (props.sharedState) {
             const { graphData, cameraPosition, connectionDensity } =
                 props.sharedState.state;
@@ -108,7 +114,9 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 return setCaptionDict(getCaptionDict(graphData, COLOR_BY_PROP));
             }, 300);
         } else {
-            setZoomLevel(fgRef.current, 1000);
+            if (props.renderMode === GraphRenderMode._3D) {
+                setZoomLevel(fgRef.current, 1000);
+            }
             getProgramsCollabs(university, connectionDensity, yearRange).then(
                 (data) => {
                     setData(data);
@@ -220,42 +228,97 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 setDensity={setConnectionDensity}
             />
 
-            <ForceGraph3D<Program, Link<Program>>
-                ref={fgRef}
-                width={windowDimensions.width}
-                height={windowDimensions.height - 50} // 50 is the height of the header
-                graphData={data}
-                nodeVal="prod_count"
-                nodeLabel="name"
-                nodeAutoColorBy={COLOR_BY_PROP}
-                nodeThreeObject={(node) => {
-                    const radius = sphereRadius(node.prod_count) * 4;
-                    const group = new THREE.Group();
-                    const geometry = new THREE.SphereGeometry(radius);
-                    const material = new THREE.MeshLambertMaterial({
-                        color: node.color,
-                        transparent: true,
-                        opacity: 0.9,
-                    });
-                    const sphere = new THREE.Mesh(geometry, material);
+            {props.renderMode === GraphRenderMode._3D ? (
+                <ForceGraph3D<Program, Link<Program>>
+                    ref={fgRef}
+                    width={windowDimensions.width}
+                    height={windowDimensions.height - 50} // 50 is the height of the header
+                    graphData={data}
+                    nodeVal="prod_count"
+                    nodeLabel="name"
+                    nodeAutoColorBy={COLOR_BY_PROP}
+                    nodeThreeObject={(node) => {
+                        const radius = sphereRadius(node.prod_count) * 4;
+                        const group = new THREE.Group();
+                        const geometry = new THREE.SphereGeometry(radius);
+                        const material = new THREE.MeshLambertMaterial({
+                            color: node.color,
+                            transparent: true,
+                            opacity: 0.9,
+                        });
+                        const sphere = new THREE.Mesh(geometry, material);
 
-                    const sprite = new SpriteText(node.name);
-                    sprite.textHeight = 0.5 * radius;
+                        const sprite = new SpriteText(node.name);
+                        sprite.textHeight = 0.5 * radius;
+                        //@ts-ignore
+                        sprite.position.set(0, -(2 * radius), 0);
+
+                        group.add(sphere);
+                        group.add(sprite);
+                        return group;
+                    }}
+                    linkColor="#d2dae2"
+                    linkOpacity={0.2}
+                    linkWidth={(link) => link.collabs_count / 4}
+                    backgroundColor="#1e272e"
+                    onNodeClick={handleNodeClick}
+                    onBackgroundClick={() => setSelectedProgram(undefined)}
+                    enableNodeDrag={true}
+                />
+            ) : (
+                <ForceGraph2D<Program, Link<Program>>
                     //@ts-ignore
-                    sprite.position.set(0, -(2 * radius), 0);
+                    ref={fgRef}
+                    graphData={data}
+                    width={windowDimensions.width}
+                    height={windowDimensions.height - 50}
+                    nodeVal="prod_count"
+                    nodeLabel="name"
+                    nodeAutoColorBy={COLOR_BY_PROP}
+                    linkColor={() => '#d2dae2'}
+                    linkOpacity={0.2}
+                    linkWidth={(link) => {
+                        return link.collabs_count / 5;
+                    }}
+                    onNodeClick={handleNodeClick}
+                    onBackgroundClick={() => setSelectedProgram(undefined)}
+                    enableNodeDrag={true}
+                    backgroundColor="#1E272E"
+                    nodeCanvasObject={(node, ctx) => {
+                        const label = node.name;
+                        const fontSize = 25;
+                        ctx.font = `${fontSize}px Sans-Serif`;
 
-                    group.add(sphere);
-                    group.add(sprite);
-                    return group;
-                }}
-                linkColor="#d2dae2"
-                linkOpacity={0.2}
-                linkWidth={(link) => link.collabs_count / 4}
-                backgroundColor="#1e272e"
-                onNodeClick={handleNodeClick}
-                onBackgroundClick={() => setSelectedProgram(undefined)}
-                enableNodeDrag={true}
-            />
+                        // Circle size could depend on a node property or just a constant
+                        const circleRadius = node.prod_count / 10;
+
+                        // Draw the circle
+                        ctx.beginPath();
+                        ctx.arc(
+                            node.x!,
+                            node.y!,
+                            circleRadius,
+                            0,
+                            2 * Math.PI,
+                            false,
+                        );
+                        ctx.fillStyle = node.color;
+                        ctx.fill();
+
+                        // Draw the label
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = 'white';
+
+                        // Add a border around the label
+                        ctx.strokeStyle = 'black'; // Border color
+                        ctx.lineWidth = 3; // Border width
+                        ctx.strokeText(label, node.x!, node.y!);
+
+                        ctx.fillText(label, node.x!, node.y!);
+                    }}
+                />
+            )}
         </section>
     );
 });

@@ -1,14 +1,18 @@
-import { faCircleNodes, faShare } from '@fortawesome/free-solid-svg-icons';
+import {
+    faCircleNodes,
+    faShare,
+    faTrophy,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useState } from 'react';
 import Modal from 'react-modal';
 import { useNavigate } from 'react-router-dom';
-import { GlobalContext } from '../App';
+import { GlobalContext, GraphRenderMode } from '../App';
 import ProgramSelector from './ProgramSelector';
 
 Modal.setAppElement('#root'); // This line is required for accessibility reasons
 
-const Header = ({ onShare }) => {
+const Header = ({ onShare, setRenderMode }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -45,11 +49,27 @@ const Header = ({ onShare }) => {
     return (
         <section className="header">
             <div className="right">
-                <div className="logo" onClick={goToHome}>
-                    <FontAwesomeIcon icon={faCircleNodes} />
-                    <span>
-                        <b>Viz</b>Colab
+                <div className="logo">
+                    <span onClick={goToHome}>
+                        <FontAwesomeIcon icon={faCircleNodes} />
+                        &nbsp;
+                        <b>Viz</b>Colab&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     </span>
+                    <span
+                        className="mode-button"
+                        onClick={() => setRenderMode(GraphRenderMode._3D)}
+                    >
+                        3D
+                    </span>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <span
+                        className="mode-button"
+                        onClick={() => setRenderMode(GraphRenderMode._2D)}
+                    >
+                        2D
+                    </span>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <FontAwesomeIcon className="trophy" icon={faTrophy} />
                 </div>
             </div>
 
