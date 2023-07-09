@@ -176,10 +176,11 @@ export async function getUniversitiesList() {
 
 export async function getUniversityProgramsList(university) {
     const QUERY = `
-    MATCH (a:Author {university: "${university}"})
-    WITH a.ies_program as program
-    ORDER BY program
-    RETURN DISTINCT program;
+    MATCH (e1:Program {university: "${university}"})-[r:COLLABORATES_WITH]-(e2:Program {university: "${university}"})
+        WITH e1, apoc.coll.sum(r.collab_counts_per_year[0..2 + 1]) as collabs_count
+        WHERE collabs_count > 0
+        RETURN DISTINCT e1.name as program
+        ORDER BY program ASC;
   `;
 
     return (await runQuery(QUERY)).map((r) => r.get('program'));
