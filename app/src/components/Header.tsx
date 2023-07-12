@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 import Modal from 'react-modal';
 import { useNavigate } from 'react-router-dom';
 import { GlobalContext, GraphRenderMode } from '../App';
-import ProgramSelector from './ProgramSelector';
+import HeaderSelectors from './HeaderSelectors/HeaderSelectors';
 
 Modal.setAppElement('#root'); // This line is required for accessibility reasons
 
@@ -78,7 +78,7 @@ const Header = ({ onShare, setRenderMode }) => {
                     <FontAwesomeIcon icon={faShare} />
                     <span className="tooltip">Compartilhar</span>
                 </button>
-                <ProgramSelector />
+                <HeaderSelectors />
             </div>
 
             <Modal

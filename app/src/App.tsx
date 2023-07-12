@@ -173,6 +173,7 @@ function App() {
                 author,
                 setAuthor,
                 setSharedState,
+                graphRef,
             }}
         >
             <BrowserRouter>

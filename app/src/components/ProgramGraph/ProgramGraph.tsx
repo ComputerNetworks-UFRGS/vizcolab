@@ -80,6 +80,30 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     university,
                 };
             },
+            focusProgram: (programName: string) => {
+                if (!isSimulationOutput(data) || !fgRef.current) {
+                    return;
+                }
+                const node = data?.nodes.find((n) => n.name === programName);
+
+                if (!node || !node.x || !node.y || !node.z) {
+                    return;
+                }
+                // Aim at node from outside it
+                const distance = 120 + node.prod_count / 100;
+                const distRatio =
+                    1 + distance / Math.hypot(node.x, node.y, node.z);
+
+                fgRef.current.cameraPosition(
+                    {
+                        x: node.x * distRatio,
+                        y: node.y * distRatio,
+                        z: node.z * distRatio,
+                    }, // new position
+                    { x: node.x, y: node.y, z: node.z }, // lookAt ({ x, y, z })
+                    3000, // ms transition duration
+                );
+            },
         }),
         [data, connectionDensity, university],
     );
