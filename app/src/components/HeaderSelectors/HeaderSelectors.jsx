@@ -51,7 +51,7 @@ function HeaderSelectors() {
                             `VizColab | Visualização de uma rede de colaboração acadêmica brasileira gerada a partir de dados da CAPES`,
                             '/',
                         );
-                        setSharedState(null);
+                        setSharedState(undefined);
                         graphRef.current.focusUniversity(universityName);
                     }}
                     data={universityNamesList}
@@ -71,7 +71,7 @@ function HeaderSelectors() {
                                 `VizColab | Visualização de uma rede de colaboração acadêmica brasileira gerada a partir de dados da CAPES`,
                                 '/',
                             );
-                            setSharedState(null);
+                            setSharedState(undefined);
                             graphRef.current.focusProgram(programName);
                         }}
                         data={programNamesList}
