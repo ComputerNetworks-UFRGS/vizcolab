@@ -7,7 +7,7 @@ import {
     getUniversityProgramsList,
 } from './data-fetching';
 
-function HeaderSelectors() {
+function HeaderSelectors({ cleared }) {
     const [universityNamesList, setUniversityNamesList] = React.useState([]);
     const [programNamesList, setProgramNamesList] = React.useState([]);
     const [authorNamesList, setAuthorNamesList] = React.useState([]);
@@ -44,7 +44,7 @@ function HeaderSelectors() {
                 <Combobox
                     placeholder="Selecione uma universidade"
                     busy={universityNamesList.length === 0}
-                    value={university}
+                    value={cleared ? '' : university}
                     onChange={(universityName) => {
                         window.history.replaceState(
                             null,
@@ -55,7 +55,7 @@ function HeaderSelectors() {
                         graphRef.current.focusUniversity(universityName);
                     }}
                     data={universityNamesList}
-                    disabled={!!university}
+                    disabled={!!university || cleared}
                 />
             </div>
             {university && (
@@ -64,7 +64,7 @@ function HeaderSelectors() {
                     <Combobox
                         placeholder="Selecione um programa"
                         busy={programNamesList.length === 0}
-                        value={programs[0]}
+                        value={cleared ? '' : programs[0]}
                         onChange={(programName) => {
                             window.history.replaceState(
                                 null,
@@ -75,7 +75,7 @@ function HeaderSelectors() {
                             graphRef.current.focusProgram(programName);
                         }}
                         data={programNamesList}
-                        disabled={!!programs[0]}
+                        disabled={!!programs[0] || cleared}
                     />
                 </div>
             )}
@@ -85,7 +85,7 @@ function HeaderSelectors() {
                     <Combobox
                         placeholder="Selecione um autor"
                         busy={authorNamesList.length === 0}
-                        value={author?.name}
+                        value={cleared ? '' : author?.name}
                         onChange={(authorName) => {
                             window.history.replaceState(
                                 null,
@@ -96,7 +96,7 @@ function HeaderSelectors() {
                             graphRef.current.focusAuthor(authorName);
                         }}
                         data={authorNamesList}
-                        disabled={!!author}
+                        disabled={!!author || cleared}
                     />
                 </div>
             )}

@@ -12,10 +12,10 @@ import ForceGraph3D, { ForceGraphMethods } from 'react-force-graph-3d';
 import * as THREE from 'three';
 import SpriteText from 'three-spritetext';
 import {
+    ContentMode,
     GlobalContext,
     GraphLevel,
     GraphRef,
-    GraphRenderMode,
     PropsOfShareableGraph,
 } from '../../App';
 import {
@@ -178,7 +178,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             });
 
             // Set the camera to look at the selected author
-            if (props.renderMode === GraphRenderMode._3D) {
+            if (props.contentMode === ContentMode._3D) {
                 setZoomLevel(fgRef.current, 500);
             }
             setLinkForce(fgRef.current, 0.02);
@@ -186,12 +186,12 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             setAuthorData(undefined);
 
             // Reset camera
-            if (props.renderMode === GraphRenderMode._3D) {
+            if (props.contentMode === ContentMode._3D) {
                 setZoomLevel(fgRef.current, 1000);
             }
             setLinkForce(fgRef.current, 0.2);
         }
-    }, [author, yearRange, props.renderMode]);
+    }, [author, yearRange, props.contentMode]);
 
     const handleBackButton = () => {
         if (author) {
@@ -286,7 +286,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 />
             )}
 
-            {props.renderMode === GraphRenderMode._3D ? (
+            {props.contentMode === ContentMode._3D && (
                 <ForceGraph3D<Author, Link<Author>>
                     ref={fgRef}
                     width={windowDimensions.width}
@@ -328,7 +328,8 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     onNodeClick={handleNodeClick}
                     onBackgroundClick={() => setSelectedAuthor(undefined)}
                 />
-            ) : (
+            )}
+            {props.contentMode === ContentMode._2D && (
                 <ForceGraph2D<Author, Link<Author>>
                     //@ts-ignore
                     ref={fgRef}

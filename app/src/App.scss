@@ -408,4 +408,27 @@ $overlay-text-color: #ecf0f1;
             }
         }
     }
+
+    .bold-header .MuiDataGrid-columnHeaderTitle {
+        font-weight: bold;
+        background-color: #ecf0f1;
+    }
+
+    .bold-header,
+    .MuiDataGrid-footerContainer {
+        background-color: #ecf0f1;
+    }
+
+    .MuiDataGrid-row {
+        background-color: #1e272e;
+        color: white;
+    }
+
+    .MuiDataGrid-cell {
+        border-bottom: none !important;
+    }
+
+    .MuiDataGrid-row:hover {
+        background-color: #546de5 !important;
+    }
 }

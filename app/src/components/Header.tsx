@@ -7,15 +7,16 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useState } from 'react';
 import Modal from 'react-modal';
 import { useNavigate } from 'react-router-dom';
-import { GlobalContext, GraphRenderMode } from '../App';
+import { ContentMode, GlobalContext } from '../App';
 import HeaderSelectors from './HeaderSelectors/HeaderSelectors';
 
 Modal.setAppElement('#root'); // This line is required for accessibility reasons
 
-const Header = ({ onShare, setRenderMode }) => {
+const Header = ({ onShare, setContentMode }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [shareUrl, setShareUrl] = useState<string | null>(null);
+    const [headerSelectorsCleared, setHeaderSelectorsCleared] = useState(false);
     const { setUniversity, setPrograms, setAuthor, setSharedState } =
         React.useContext(GlobalContext);
     const navigate = useNavigate();
@@ -57,19 +58,32 @@ const Header = ({ onShare, setRenderMode }) => {
                     </span>
                     <span
                         className="mode-button"
-                        onClick={() => setRenderMode(GraphRenderMode._3D)}
+                        onClick={() => {
+                            setHeaderSelectorsCleared(false);
+                            setContentMode(ContentMode._3D);
+                        }}
                     >
                         3D
                     </span>
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     <span
                         className="mode-button"
-                        onClick={() => setRenderMode(GraphRenderMode._2D)}
+                        onClick={() => {
+                            setHeaderSelectorsCleared(false);
+                            setContentMode(ContentMode._2D);
+                        }}
                     >
                         2D
                     </span>
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    <FontAwesomeIcon className="trophy" icon={faTrophy} />
+                    <FontAwesomeIcon
+                        className="trophy"
+                        icon={faTrophy}
+                        onClick={() => {
+                            setHeaderSelectorsCleared(true);
+                            setContentMode(ContentMode.Rankings);
+                        }}
+                    />
                 </div>
             </div>
 
@@ -78,7 +92,7 @@ const Header = ({ onShare, setRenderMode }) => {
                     <FontAwesomeIcon icon={faShare} />
                     <span className="tooltip">Compartilhar</span>
                 </button>
-                <HeaderSelectors />
+                <HeaderSelectors cleared={headerSelectorsCleared} />
             </div>
 
             <Modal

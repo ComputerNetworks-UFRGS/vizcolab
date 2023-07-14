@@ -1,5 +1,7 @@
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Box } from '@mui/material';
+import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import React, {
     forwardRef,
     useEffect,
@@ -12,10 +14,10 @@ import ForceGraph3D, { ForceGraphMethods } from 'react-force-graph-3d';
 import * as THREE from 'three';
 import SpriteText from 'three-spritetext';
 import {
+    ContentMode,
     GlobalContext,
     GraphLevel,
     GraphRef,
-    GraphRenderMode,
     PropsOfShareableGraph,
 } from '../../App';
 import {
@@ -115,12 +117,15 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     }, [data]);
 
     useEffect(() => {
-        setLinkForce(fgRef.current, 0.05);
-        setCenterForce(fgRef.current, 1);
-        if (props.renderMode === GraphRenderMode._3D) {
+        if (props.contentMode !== ContentMode.Rankings) {
+            setLinkForce(fgRef.current, 0.05);
+            setCenterForce(fgRef.current, 1);
+        }
+        if (props.contentMode === ContentMode._3D) {
             setChargeForce(fgRef.current, -500);
             setZoomLevel(fgRef.current, 3500);
-        } else {
+        }
+        if (props.contentMode === ContentMode._2D) {
             setChargeForce(fgRef.current, -1500);
         }
         if (props.sharedState && isFirstLoad.current) {
@@ -172,6 +177,65 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         return b.degree_centrality - a.degree_centrality;
     });
 
+    const tableModeColumns: GridColDef[] = [
+        {
+            field: 'lineNo',
+            headerName: '#',
+            width: 5,
+            valueGetter: (params) =>
+                params.api.getRowIndexRelativeToVisibleRows(params.row.id) + 1,
+            headerClassName: 'bold-header',
+            sortable: false,
+            filterable: false,
+            disableColumnMenu: true,
+        },
+        {
+            field: 'full_name',
+            headerName: 'Universidade',
+            headerClassName: 'bold-header',
+            flex: 2,
+        },
+        {
+            field: 'uf',
+            headerName: 'UF',
+            headerClassName: 'bold-header',
+            width: 90,
+        },
+        {
+            field: 'city',
+            headerName: 'Cidade',
+            headerClassName: 'bold-header',
+            flex: 0.7,
+        },
+        {
+            field: 'region',
+            headerName: 'Região',
+            headerClassName: 'bold-header',
+            flex: 0.5,
+        },
+        {
+            field: 'prod_count',
+            headerName: 'Produções',
+            headerClassName: 'bold-header',
+            flex: 0.5,
+            type: 'number',
+        },
+        {
+            field: 'betweenness_centrality',
+            headerName: 'Centralidade de Intermediação',
+            headerClassName: 'bold-header',
+            flex: 1,
+            type: 'number',
+        },
+        {
+            field: 'degree_centrality',
+            headerName: 'Centralidade de Grau',
+            headerClassName: 'bold-header',
+            flex: 1,
+            type: 'number',
+        },
+    ];
+
     return (
         <section className="graph">
             {isLoading && (
@@ -179,52 +243,65 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     <FontAwesomeIcon icon={faSpinner} spin />
                 </div>
             )}
+            {props.contentMode !== ContentMode.Rankings && (
+                <>
+                    <section className="right-panel">
+                        <GraphCaptions
+                            captionDict={captionDict}
+                            nodesOrderedByBetweenness={
+                                nodesOrderedByBetweenness
+                            }
+                            nodesOrderedByDegree={nodesOrderedByDegree}
+                        />
+                        {selectedUniversity && (
+                            <NodeDetailsOverlay
+                                nodeType="UNIVERSIDADE"
+                                title={selectedUniversity.full_name}
+                                detailsSchema={{
+                                    Sigla: selectedUniversity.name,
+                                    'Status Jurídico':
+                                        selectedUniversity.legal_status,
+                                    Região: selectedUniversity.region,
+                                    UF: selectedUniversity.uf,
+                                    Cidade: selectedUniversity.city,
+                                    'Número de Produções':
+                                        selectedUniversity.prod_count,
+                                    [`Centralidade de Grau (${
+                                        nodesOrderedByDegree!.findIndex(
+                                            (n) =>
+                                                selectedUniversity.name ===
+                                                n.name,
+                                        ) + 1
+                                    }º)`]: selectedUniversity.degree_centrality,
+                                    [`Centralidade de Intermediação (${
+                                        nodesOrderedByBetweenness!.findIndex(
+                                            (n) =>
+                                                selectedUniversity.name ===
+                                                n.name,
+                                        ) + 1
+                                    }º)`]:
+                                        selectedUniversity.betweenness_centrality,
+                                }}
+                                exploreNode={() =>
+                                    exploreNode(selectedUniversity)
+                                }
+                            />
+                        )}
+                    </section>
 
-            <section className="right-panel">
-                <GraphCaptions
-                    captionDict={captionDict}
-                    nodesOrderedByBetweenness={nodesOrderedByBetweenness}
-                    nodesOrderedByDegree={nodesOrderedByDegree}
-                />
-                {selectedUniversity && (
-                    <NodeDetailsOverlay
-                        nodeType="UNIVERSIDADE"
-                        title={selectedUniversity.full_name}
-                        detailsSchema={{
-                            Sigla: selectedUniversity.name,
-                            'Status Jurídico': selectedUniversity.legal_status,
-                            Região: selectedUniversity.region,
-                            UF: selectedUniversity.uf,
-                            Cidade: selectedUniversity.city,
-                            'Número de Produções':
-                                selectedUniversity.prod_count,
-                            [`Centralidade de Grau (${
-                                nodesOrderedByDegree!.findIndex(
-                                    (n) => selectedUniversity.name === n.name,
-                                ) + 1
-                            }º)`]: selectedUniversity.degree_centrality,
-                            [`Centralidade de Intermediação (${
-                                nodesOrderedByBetweenness!.findIndex(
-                                    (n) => selectedUniversity.name === n.name,
-                                ) + 1
-                            }º)`]: selectedUniversity.betweenness_centrality,
-                        }}
-                        exploreNode={() => exploreNode(selectedUniversity)}
+                    <YearRangeSlider
+                        yearRange={yearRange}
+                        setYearRange={setYearRange}
                     />
-                )}
-            </section>
 
-            <YearRangeSlider
-                yearRange={yearRange}
-                setYearRange={setYearRange}
-            />
+                    <DetailLevelSelector
+                        density={connectionDensity}
+                        setDensity={setConnectionDensity}
+                    />
+                </>
+            )}
 
-            <DetailLevelSelector
-                density={connectionDensity}
-                setDensity={setConnectionDensity}
-            />
-
-            {props.renderMode === GraphRenderMode._3D ? (
+            {props.contentMode === ContentMode._3D && (
                 <ForceGraph3D<University, Link<University>>
                     ref={fgRef}
                     width={windowDimensions.width}
@@ -264,7 +341,8 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     onBackgroundClick={() => setSelectedUniversity(undefined)}
                     enableNodeDrag={true}
                 />
-            ) : (
+            )}
+            {props.contentMode === ContentMode._2D && (
                 <ForceGraph2D<University, Link<University>>
                     //@ts-ignore
                     ref={fgRef}
@@ -317,6 +395,26 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                         ctx.fillText(label, node.x!, node.y!);
                     }}
                 />
+            )}
+            {props.contentMode === ContentMode.Rankings && (
+                <Box sx={{ height: '94vh', width: '100%' }}>
+                    <DataGrid
+                        localeText={
+                            ptBR.components.MuiDataGrid.defaultProps.localeText
+                        }
+                        rows={data?.nodes ?? []}
+                        columns={tableModeColumns}
+                        initialState={{
+                            pagination: {
+                                paginationModel: {
+                                    pageSize: 30,
+                                },
+                            },
+                        }}
+                        pageSizeOptions={[5]}
+                        disableRowSelectionOnClick
+                    />
+                </Box>
             )}
         </section>
     );

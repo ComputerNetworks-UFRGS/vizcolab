@@ -47,14 +47,15 @@ export type GraphRef = {
 
 export type PropsOfShareableGraph = {
     sharedState?: SharedState;
-    renderMode: GraphRenderMode;
+    contentMode: ContentMode;
 };
 
 export const GlobalContext = React.createContext<Record<string, any>>({});
 
-export enum GraphRenderMode {
+export enum ContentMode {
     _3D = '3D',
     _2D = '2D',
+    Rankings = 'Rankings',
 }
 
 function App() {
@@ -62,8 +63,8 @@ function App() {
     const [programs, setPrograms] = React.useState<string[]>([]);
     const [author, setAuthor] = React.useState(undefined);
     const [isLoading, setIsLoading] = React.useState(true);
-    const [renderMode, setRenderMode] = useState<GraphRenderMode>(
-        GraphRenderMode._3D,
+    const [contentMode, setContentMode] = useState<ContentMode>(
+        ContentMode._3D,
     );
 
     const graphRef = useRef<GraphRef>(null);
@@ -125,21 +126,21 @@ function App() {
                     <AuthorGraph
                         ref={graphRef}
                         sharedState={sharedState}
-                        renderMode={renderMode}
+                        contentMode={contentMode}
                     />
                 )}
                 {level === GraphLevel.Programs && (
                     <ProgramGraph
                         ref={graphRef}
                         sharedState={sharedState}
-                        renderMode={renderMode}
+                        contentMode={contentMode}
                     />
                 )}
                 {(level === GraphLevel.Universities || !level) && (
                     <UniversityGraph
                         ref={graphRef}
                         sharedState={sharedState}
-                        renderMode={renderMode}
+                        contentMode={contentMode}
                     />
                 )}
             </>
@@ -178,7 +179,10 @@ function App() {
         >
             <BrowserRouter>
                 <div className="App">
-                    <Header onShare={saveState} setRenderMode={setRenderMode} />
+                    <Header
+                        onShare={saveState}
+                        setContentMode={setContentMode}
+                    />
                     <Graph />
                 </div>
             </BrowserRouter>

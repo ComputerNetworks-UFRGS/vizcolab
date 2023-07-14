@@ -10,10 +10,10 @@ import React, {
 import ForceGraph3D, { ForceGraphMethods } from 'react-force-graph-3d';
 import SpriteText from 'three-spritetext';
 import {
+    ContentMode,
     GlobalContext,
     GraphLevel,
     GraphRef,
-    GraphRenderMode,
     PropsOfShareableGraph,
 } from '../../App';
 import {
@@ -120,7 +120,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     useEffect(() => {
         setLinkForce(fgRef.current, 0.05);
         setCenterForce(fgRef.current, 1);
-        if (props.renderMode === GraphRenderMode._3D) {
+        if (props.contentMode === ContentMode._3D) {
             setChargeForce(fgRef.current, -500);
             setZoomLevel(fgRef.current, 3500);
         } else {
@@ -138,7 +138,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 return setCaptionDict(getCaptionDict(graphData, COLOR_BY_PROP));
             }, 300);
         } else {
-            if (props.renderMode === GraphRenderMode._3D) {
+            if (props.contentMode === ContentMode._3D) {
                 setZoomLevel(fgRef.current, 1000);
             }
             getProgramsCollabs(university, connectionDensity, yearRange).then(
@@ -252,7 +252,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 setDensity={setConnectionDensity}
             />
 
-            {props.renderMode === GraphRenderMode._3D ? (
+            {props.contentMode === ContentMode._3D && (
                 <ForceGraph3D<Program, Link<Program>>
                     ref={fgRef}
                     width={windowDimensions.width}
@@ -289,7 +289,8 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     onBackgroundClick={() => setSelectedProgram(undefined)}
                     enableNodeDrag={true}
                 />
-            ) : (
+            )}
+            {props.contentMode === ContentMode._2D && (
                 <ForceGraph2D<Program, Link<Program>>
                     //@ts-ignore
                     ref={fgRef}
