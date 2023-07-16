@@ -1,3 +1,4 @@
+import * as d3 from 'd3';
 import { forceCenter, forceLink, forceManyBody } from 'd3-force-3d';
 import { Link, Node, SimulationOutputNode } from './neo4j_helper';
 
@@ -53,4 +54,12 @@ export function getCaptionDict(
         captionDict[node[colorBy] || 'NÃO INFORMADO'] = node.color;
     }
     return captionDict;
+}
+
+export function getNodeColor(centrality: number) {
+    const logScale = d3.scaleLog().domain([0.001, 1]).range([0, 1]);
+
+    const colorScale = d3.scaleSequential(d3.interpolateInferno);
+
+    return colorScale(logScale(centrality + 0.001));
 }

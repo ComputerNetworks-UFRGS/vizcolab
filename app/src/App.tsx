@@ -17,6 +17,7 @@ export type SimulationNode = {
     vx: number;
     vy: number;
     vz: number;
+    color: string;
 };
 
 export enum GraphLevel {
@@ -57,6 +58,11 @@ export enum ContentMode {
     _2D = '2D',
     Rankings = 'Rankings',
 }
+
+export const captionModes = ['colorKey', 'betweenness', 'degree'] as const;
+export type CaptionMode = (typeof captionModes)[number];
+
+export const NUMBER_OF_CENTRALITY_CLASSES = 10;
 
 function App() {
     const [university, setUniversity] = React.useState<string>();

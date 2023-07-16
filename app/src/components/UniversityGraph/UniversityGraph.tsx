@@ -19,10 +19,12 @@ import {
     GraphLevel,
     GraphRef,
     PropsOfShareableGraph,
+    captionModes,
 } from '../../App';
 import {
     GraphData,
     getCaptionDict,
+    getNodeColor,
     setCenterForce,
     setChargeForce,
     setLinkForce,
@@ -31,7 +33,7 @@ import {
 } from '../../helpers/graph_helper';
 import { Link, Node, isSimulationOutput } from '../../helpers/neo4j_helper';
 import DetailLevelSelector from '../DetailLevelSelector';
-import GraphCaptions from '../GraphCaptions';
+import GraphCaptions from '../GraphCaptionsPanel/GraphCaptions';
 import NodeDetailsOverlay from '../NodeDetailsOverlay';
 import YearRangeSlider from '../YearRangeSlider';
 import { University, getUniversitiesCollabs } from './data-fetching';
@@ -39,6 +41,7 @@ import { University, getUniversitiesCollabs } from './data-fetching';
 const COLOR_BY_PROP = 'region';
 
 const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
+    const [currentCaptionModeIndex, setCurrentCaptionModeIndex] = useState(0);
     const [data, setData] = useState<GraphData<University>>();
     const [windowDimensions, setWindowDimensions] = useState({
         width: window.innerWidth,
@@ -115,6 +118,32 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             });
         });
     }, [data]);
+
+    const captionMode = captionModes[currentCaptionModeIndex];
+    useEffect(() => {
+        if (!data) return;
+        data.nodes.forEach((n) => {
+            //@ts-ignore
+            delete n.color;
+        });
+        if (captionMode === 'degree' || captionMode === 'betweenness') {
+            data.nodes.forEach((n) => {
+                if (captionMode === 'degree') {
+                    //@ts-ignore
+                    n.color = getNodeColor(n.degree_centrality);
+                }
+                if (captionMode === 'betweenness') {
+                    //@ts-ignore
+                    n.color = getNodeColor(n.betweenness_centrality);
+                }
+            });
+        } else {
+            setTimeout(
+                () => setCaptionDict(getCaptionDict(data, COLOR_BY_PROP)),
+                300,
+            );
+        }
+    }, [captionMode, data]);
 
     useEffect(() => {
         if (props.contentMode !== ContentMode.Rankings) {
@@ -252,6 +281,12 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                                 nodesOrderedByBetweenness
                             }
                             nodesOrderedByDegree={nodesOrderedByDegree}
+                            setCurrentCaptionModeIndex={
+                                setCurrentCaptionModeIndex
+                            }
+                            currentCaptionModeIndex={currentCaptionModeIndex}
+                            captionModes={captionModes}
+                            captionMode={captionMode}
                         />
                         {selectedUniversity && (
                             <NodeDetailsOverlay
@@ -281,6 +316,8 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                                         ) + 1
                                     }º)`]:
                                         selectedUniversity.betweenness_centrality,
+                                    //@ts-ignore
+                                    color: selectedUniversity.color,
                                 }}
                                 exploreNode={() =>
                                     exploreNode(selectedUniversity)
@@ -309,7 +346,9 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     graphData={data}
                     nodeVal="prod_count"
                     nodeLabel="name"
-                    nodeAutoColorBy={COLOR_BY_PROP}
+                    nodeAutoColorBy={
+                        captionMode === 'colorKey' ? COLOR_BY_PROP : null
+                    }
                     nodeThreeObject={(node) => {
                         const radius = sphereRadius(node.prod_count) * 1.5;
                         const group = new THREE.Group();

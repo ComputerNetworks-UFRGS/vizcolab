@@ -1,29 +1,32 @@
 import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useState } from 'react';
+import React from 'react';
+import InfernoGradientBar from './InfernoGradientBar';
 
 function GraphCaptions({
     captionDict,
-    nodesOrderedByBetweenness,
-    nodesOrderedByDegree,
+    currentCaptionModeIndex,
+    setCurrentCaptionModeIndex,
+    captionModes,
+    captionMode,
 }) {
-    const views = ['colorKey', 'betweenness', 'degree'];
-    const [currentViewIndex, setCurrentViewIndex] = useState(0);
-
     if (!captionDict) return <div />;
 
     const decrementViewIndex = () =>
-        setCurrentViewIndex(
-            (currentViewIndex - 1 + views.length) % views.length,
+        setCurrentCaptionModeIndex(
+            (currentCaptionModeIndex - 1 + captionModes.length) %
+                captionModes.length,
         );
     const incrementViewIndex = () =>
-        setCurrentViewIndex((currentViewIndex + 1) % views.length);
+        setCurrentCaptionModeIndex(
+            (currentCaptionModeIndex + 1) % captionModes.length,
+        );
 
     let content;
     let header;
-    switch (views[currentViewIndex]) {
+    switch (captionMode) {
         case 'colorKey':
-            header = 'Legenda';
+            header = 'Regiões';
             content = Object.entries(captionDict)
                 .slice(0, 10)
                 .map(([type, color]) => (
@@ -37,30 +40,21 @@ function GraphCaptions({
                 ));
             break;
         case 'betweenness':
-            header = 'Ranking Intermediação';
-            content = nodesOrderedByBetweenness
-                .slice(0, 10)
-                .map((node, index) => (
-                    <div key={node.name} className="caption-item">
-                        <span className="type-name">
-                            <strong>{index + 1}</strong>.{' '}
-                            {`${
-                                node.name
-                            }: ${node.betweenness_centrality.toFixed(3)}`}
-                        </span>
-                    </div>
-                ));
+            header = 'Intermediação';
+            content = (
+                <div className="gradient-bar">
+                    <InfernoGradientBar />
+                </div>
+            );
+
             break;
         case 'degree':
-            header = 'Ranking Grau';
-            content = nodesOrderedByDegree.slice(0, 10).map((node, index) => (
-                <div key={node.name} className="caption-item">
-                    <span className="type-name">
-                        <strong>{index + 1}</strong>.{' '}
-                        {`${node.name}: ${node.degree_centrality.toFixed(3)}`}
-                    </span>
+            header = 'Grau';
+            content = (
+                <div className="gradient-bar">
+                    <InfernoGradientBar />
                 </div>
-            ));
+            );
             break;
         default:
             break;

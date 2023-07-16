@@ -27,7 +27,7 @@ import {
 } from '../../helpers/graph_helper';
 import { Link, Node, isSimulationOutput } from '../../helpers/neo4j_helper';
 import DetailLevelSelector from '../DetailLevelSelector';
-import GraphCaptions from '../GraphCaptions';
+import GraphCaptions from '../GraphCaptionsPanel/GraphCaptions';
 import NodeDetailsOverlay from '../NodeDetailsOverlay';
 import { Program, getProgramsCollabs } from './data-fetching';
 
