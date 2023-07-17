@@ -80,7 +80,7 @@ const Header = ({ onShare, setContentMode }) => {
                         className="trophy"
                         icon={faTrophy}
                         onClick={() => {
-                            setHeaderSelectorsCleared(true);
+                            setHeaderSelectorsCleared(false);
                             setContentMode(ContentMode.Rankings);
                         }}
                     />

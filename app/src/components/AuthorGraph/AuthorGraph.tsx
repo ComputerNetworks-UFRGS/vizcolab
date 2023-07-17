@@ -1,5 +1,7 @@
 import { faArrowLeft, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Box } from '@mui/material';
+import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import React, {
     forwardRef,
     useEffect,
@@ -128,8 +130,10 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     }, []);
 
     useEffect(() => {
-        setChargeForce(fgRef.current, -500, 600);
-        setCenterForce(fgRef.current, 1);
+        if (props.contentMode !== ContentMode.Rankings) {
+            setChargeForce(fgRef.current, -500, 600);
+            setCenterForce(fgRef.current, 1);
+        }
         if (props.sharedState && !programs.length && !author && !university) {
             const { graphData, cameraPosition, author, university, programs } =
                 props.sharedState.state;
@@ -181,7 +185,9 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             if (props.contentMode === ContentMode._3D) {
                 setZoomLevel(fgRef.current, 500);
             }
-            setLinkForce(fgRef.current, 0.02);
+            if (props.contentMode !== ContentMode.Rankings) {
+                setLinkForce(fgRef.current, 0.02);
+            }
         } else {
             setAuthorData(undefined);
 
@@ -189,7 +195,9 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             if (props.contentMode === ContentMode._3D) {
                 setZoomLevel(fgRef.current, 1000);
             }
-            setLinkForce(fgRef.current, 0.2);
+            if (props.contentMode !== ContentMode.Rankings) {
+                setLinkForce(fgRef.current, 0.2);
+            }
         }
     }, [author, yearRange, props.contentMode]);
 
@@ -228,6 +236,70 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         return b.degree_centrality - a.degree_centrality;
     });
 
+    const tableModeColumns: GridColDef[] = [
+        {
+            field: 'lineNo',
+            headerName: '#',
+            width: 5,
+            valueGetter: (params) =>
+                params.api.getRowIndexRelativeToVisibleRows(params.row.id) + 1,
+            headerClassName: 'bold-header',
+            sortable: false,
+            filterable: false,
+            disableColumnMenu: true,
+        },
+        {
+            field: 'name',
+            headerName: 'Autor',
+            headerClassName: 'bold-header',
+            flex: 2,
+        },
+        {
+            field: 'university',
+            headerName: 'Universidade',
+            headerClassName: 'bold-header',
+            flex: 1,
+        },
+        {
+            field: 'ies_program',
+            headerName: 'Programa',
+            headerClassName: 'bold-header',
+            flex: 1.5,
+        },
+        {
+            field: 'knowledge_area',
+            headerName: 'Área',
+            headerClassName: 'bold-header',
+            flex: 1.5,
+        },
+        {
+            field: 'research_line',
+            headerName: 'Linha de pesquisa',
+            headerClassName: 'bold-header',
+            flex: 1.5,
+        },
+        {
+            field: 'type',
+            headerName: 'Tipo',
+            headerClassName: 'bold-header',
+            flex: 1,
+        },
+        {
+            field: 'betweenness_centrality',
+            headerName: 'Centralidade de Intermediação',
+            headerClassName: 'bold-header',
+            flex: 1,
+            type: 'number',
+        },
+        {
+            field: 'degree_centrality',
+            headerName: 'Centralidade de Grau',
+            headerClassName: 'bold-header',
+            flex: 1,
+            type: 'number',
+        },
+    ];
+
     return (
         <section className="graph">
             {isLoading && (
@@ -236,54 +308,62 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 </div>
             )}
 
-            <div className="back-button" onClick={handleBackButton}>
-                <FontAwesomeIcon icon={faArrowLeft} />
-            </div>
+            {props.contentMode !== ContentMode.Rankings && (
+                <>
+                    <div className="back-button" onClick={handleBackButton}>
+                        <FontAwesomeIcon icon={faArrowLeft} />
+                    </div>
 
-            <section className="right-panel">
-                {selectedAuthor && (
-                    <NodeDetailsOverlay
-                        nodeType="AUTOR"
-                        title={selectedAuthor.name}
-                        detailsSchema={{
-                            Universidade: selectedAuthor.university,
-                            'Programa IES': selectedAuthor.ies_program,
-                            'Linha de Pesquisa': selectedAuthor.research_line,
-                            Tipo: selectedAuthor.type,
-                            'Nome ABNT': selectedAuthor.abnt_name,
-                            'Número de Produções': selectedAuthor.prod_count,
-                            [`Centralidade de Grau (${
-                                nodesOrderedByDegree!.findIndex(
-                                    (n) => n.id === selectedAuthor.id,
-                                ) + 1
-                            }º)`]: selectedAuthor.degree_centrality,
-                            [`Centralidade de Intermediação (${
-                                nodesOrderedByBetweenness!.findIndex(
-                                    (n) => n.id === selectedAuthor.id,
-                                ) + 1
-                            }º)`]: selectedAuthor.betweenness_centrality,
-                        }}
-                        exploreNode={
-                            !authorData || author.id !== selectedAuthor.id
-                                ? () => exploreNode(selectedAuthor)
-                                : undefined
-                        }
-                        authorData={authorData}
-                        selectAuthor={setAuthor}
+                    <section className="right-panel">
+                        {selectedAuthor && (
+                            <NodeDetailsOverlay
+                                nodeType="AUTOR"
+                                title={selectedAuthor.name}
+                                detailsSchema={{
+                                    Universidade: selectedAuthor.university,
+                                    'Programa IES': selectedAuthor.ies_program,
+                                    'Linha de Pesquisa':
+                                        selectedAuthor.research_line,
+                                    Tipo: selectedAuthor.type,
+                                    'Nome ABNT': selectedAuthor.abnt_name,
+                                    'Número de Produções':
+                                        selectedAuthor.prod_count,
+                                    [`Centralidade de Grau (${
+                                        nodesOrderedByDegree!.findIndex(
+                                            (n) => n.id === selectedAuthor.id,
+                                        ) + 1
+                                    }º)`]: selectedAuthor.degree_centrality,
+                                    [`Centralidade de Intermediação (${
+                                        nodesOrderedByBetweenness!.findIndex(
+                                            (n) => n.id === selectedAuthor.id,
+                                        ) + 1
+                                    }º)`]:
+                                        selectedAuthor.betweenness_centrality,
+                                }}
+                                exploreNode={
+                                    !authorData ||
+                                    author.id !== selectedAuthor.id
+                                        ? () => exploreNode(selectedAuthor)
+                                        : undefined
+                                }
+                                authorData={authorData}
+                                selectAuthor={setAuthor}
+                            />
+                        )}
+                    </section>
+
+                    <YearRangeSlider
+                        yearRange={yearRange}
+                        setYearRange={setYearRange}
                     />
-                )}
-            </section>
 
-            <YearRangeSlider
-                yearRange={yearRange}
-                setYearRange={setYearRange}
-            />
-
-            {!authorData && (
-                <DetailLevelSelector
-                    density={connectionDensity}
-                    setDensity={setConnectionDensity}
-                />
+                    {!authorData && (
+                        <DetailLevelSelector
+                            density={connectionDensity}
+                            setDensity={setConnectionDensity}
+                        />
+                    )}
+                </>
             )}
 
             {props.contentMode === ContentMode._3D && (
@@ -382,6 +462,26 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                         ctx.fillText(label, node.x!, node.y!);
                     }}
                 />
+            )}
+            {props.contentMode === ContentMode.Rankings && (
+                <Box sx={{ height: '94vh', width: '100%' }}>
+                    <DataGrid
+                        localeText={
+                            ptBR.components.MuiDataGrid.defaultProps.localeText
+                        }
+                        rows={data?.nodes ?? []}
+                        columns={tableModeColumns}
+                        initialState={{
+                            pagination: {
+                                paginationModel: {
+                                    pageSize: 30,
+                                },
+                            },
+                        }}
+                        pageSizeOptions={[5]}
+                        disableRowSelectionOnClick
+                    />
+                </Box>
             )}
         </section>
     );
