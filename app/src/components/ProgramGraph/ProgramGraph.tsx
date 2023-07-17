@@ -33,6 +33,8 @@ import GraphCaptions from '../GraphCaptionsPanel/GraphCaptions';
 import NodeDetailsOverlay from '../NodeDetailsOverlay';
 import { Program, getProgramsCollabs } from './data-fetching';
 
+import { Box } from '@mui/material';
+import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import { ForceGraph2D } from 'react-force-graph';
 import { useNavigate } from 'react-router-dom';
 import * as THREE from 'three';
@@ -120,12 +122,15 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     }, []);
 
     useEffect(() => {
-        setLinkForce(fgRef.current, 0.05);
-        setCenterForce(fgRef.current, 1);
+        if (props.contentMode !== ContentMode.Rankings) {
+            setLinkForce(fgRef.current, 0.05);
+            setCenterForce(fgRef.current, 1);
+        }
         if (props.contentMode === ContentMode._3D) {
             setChargeForce(fgRef.current, -500);
             setZoomLevel(fgRef.current, 3500);
-        } else {
+        }
+        if (props.contentMode === ContentMode._2D) {
             setChargeForce(fgRef.current, -1500);
         }
         if (props.sharedState) {
@@ -223,11 +228,59 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         return b.degree_centrality - a.degree_centrality;
     });
 
+    const tableModeColumns: GridColDef[] = [
+        {
+            field: 'lineNo',
+            headerName: '#',
+            width: 5,
+            valueGetter: (params) =>
+                params.api.getRowIndexRelativeToVisibleRows(params.row.id) + 1,
+            headerClassName: 'bold-header',
+            sortable: false,
+            filterable: false,
+            disableColumnMenu: true,
+        },
+        {
+            field: 'full_name',
+            headerName: 'Programa',
+            headerClassName: 'bold-header',
+            flex: 2,
+        },
+        {
+            field: 'wide_knowledge_area',
+            headerName: 'Grande área do conhecimento',
+            headerClassName: 'bold-header',
+            flex: 1.5,
+        },
+        {
+            field: 'knowledge_area',
+            headerName: 'Área',
+            headerClassName: 'bold-header',
+            flex: 1,
+        },
+        {
+            field: 'betweenness_centrality',
+            headerName: 'Centralidade de Intermediação',
+            headerClassName: 'bold-header',
+            flex: 1,
+            type: 'number',
+        },
+        {
+            field: 'degree_centrality',
+            headerName: 'Centralidade de Grau',
+            headerClassName: 'bold-header',
+            flex: 1,
+            type: 'number',
+        },
+    ];
+
     return (
         <section className="graph">
-            <div className="back-button" onClick={handleBackButton}>
-                <FontAwesomeIcon icon={faArrowLeft} />
-            </div>
+            {props.contentMode !== ContentMode.Rankings && (
+                <div className="back-button" onClick={handleBackButton}>
+                    <FontAwesomeIcon icon={faArrowLeft} />
+                </div>
+            )}
 
             {isLoading && (
                 <div className="graph-loading">
@@ -235,56 +288,67 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 </div>
             )}
 
-            <section className="right-panel">
-                <GraphCaptions
-                    captionDict={captionDict}
-                    nodesOrderedByBetweenness={nodesOrderedByBetweenness}
-                    nodesOrderedByDegree={nodesOrderedByDegree}
-                    setCurrentCaptionModeIndex={setCurrentCaptionModeIndex}
-                    currentCaptionModeIndex={currentCaptionModeIndex}
-                    captionModes={captionModes}
-                    captionMode={captionMode}
-                    colorByProp={COLOR_BY_PROP}
-                />
-                {selectedProgram && (
-                    <NodeDetailsOverlay
-                        nodeType="PROGRAMA"
-                        title={selectedProgram.full_name}
-                        detailsSchema={{
-                            'Grande Area de Conhecimento':
-                                selectedProgram.wide_knowledge_area,
-                            'Área de Conhecimento':
-                                selectedProgram.knowledge_area,
-                            'Sub-área de Conhecimento':
-                                selectedProgram.knowledge_subarea,
-                            Especialidade: selectedProgram.specialty,
-                            'Área de Avaliação': selectedProgram.rating_area,
-                            'Número de Produções': selectedProgram.prod_count,
-                            [`Centralidade de Grau (${
-                                nodesOrderedByDegree!.findIndex(
-                                    (n) => n.id === selectedProgram.id,
-                                ) + 1
-                            }º)`]: selectedProgram.degree_centrality,
-                            [`Centralidade de Intermediação (${
-                                nodesOrderedByBetweenness!.findIndex(
-                                    (n) => n.id === selectedProgram.id,
-                                ) + 1
-                            }º)`]: selectedProgram.betweenness_centrality,
-                        }}
-                        exploreNode={() => exploreNode(selectedProgram)}
+            {props.contentMode !== ContentMode.Rankings && (
+                <>
+                    <section className="right-panel">
+                        <GraphCaptions
+                            captionDict={captionDict}
+                            nodesOrderedByBetweenness={
+                                nodesOrderedByBetweenness
+                            }
+                            nodesOrderedByDegree={nodesOrderedByDegree}
+                            setCurrentCaptionModeIndex={
+                                setCurrentCaptionModeIndex
+                            }
+                            currentCaptionModeIndex={currentCaptionModeIndex}
+                            captionModes={captionModes}
+                            captionMode={captionMode}
+                            colorByProp={COLOR_BY_PROP}
+                        />
+                        {selectedProgram && (
+                            <NodeDetailsOverlay
+                                nodeType="PROGRAMA"
+                                title={selectedProgram.full_name}
+                                detailsSchema={{
+                                    'Grande Area de Conhecimento':
+                                        selectedProgram.wide_knowledge_area,
+                                    'Área de Conhecimento':
+                                        selectedProgram.knowledge_area,
+                                    'Sub-área de Conhecimento':
+                                        selectedProgram.knowledge_subarea,
+                                    Especialidade: selectedProgram.specialty,
+                                    'Área de Avaliação':
+                                        selectedProgram.rating_area,
+                                    'Número de Produções':
+                                        selectedProgram.prod_count,
+                                    [`Centralidade de Grau (${
+                                        nodesOrderedByDegree!.findIndex(
+                                            (n) => n.id === selectedProgram.id,
+                                        ) + 1
+                                    }º)`]: selectedProgram.degree_centrality,
+                                    [`Centralidade de Intermediação (${
+                                        nodesOrderedByBetweenness!.findIndex(
+                                            (n) => n.id === selectedProgram.id,
+                                        ) + 1
+                                    }º)`]:
+                                        selectedProgram.betweenness_centrality,
+                                }}
+                                exploreNode={() => exploreNode(selectedProgram)}
+                            />
+                        )}
+                    </section>
+
+                    <YearRangeSlider
+                        yearRange={yearRange}
+                        setYearRange={setYearRange}
                     />
-                )}
-            </section>
 
-            <YearRangeSlider
-                yearRange={yearRange}
-                setYearRange={setYearRange}
-            />
-
-            <DetailLevelSelector
-                density={connectionDensity}
-                setDensity={setConnectionDensity}
-            />
+                    <DetailLevelSelector
+                        density={connectionDensity}
+                        setDensity={setConnectionDensity}
+                    />
+                </>
+            )}
 
             {props.contentMode === ContentMode._3D && (
                 <ForceGraph3D<Program, Link<Program>>
@@ -379,6 +443,26 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                         ctx.fillText(label, node.x!, node.y!);
                     }}
                 />
+            )}
+            {props.contentMode === ContentMode.Rankings && (
+                <Box sx={{ height: '94vh', width: '100%' }}>
+                    <DataGrid
+                        localeText={
+                            ptBR.components.MuiDataGrid.defaultProps.localeText
+                        }
+                        rows={data?.nodes ?? []}
+                        columns={tableModeColumns}
+                        initialState={{
+                            pagination: {
+                                paginationModel: {
+                                    pageSize: 30,
+                                },
+                            },
+                        }}
+                        pageSizeOptions={[5]}
+                        disableRowSelectionOnClick
+                    />
+                </Box>
             )}
         </section>
     );
