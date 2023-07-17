@@ -9,6 +9,7 @@ function GraphCaptions({
     setCurrentCaptionModeIndex,
     captionModes,
     captionMode,
+    colorByProp,
 }) {
     if (!captionDict) return <div />;
 
@@ -26,7 +27,12 @@ function GraphCaptions({
     let header;
     switch (captionMode) {
         case 'colorKey':
-            header = 'Regiões';
+            header =
+                colorByProp === 'region'
+                    ? 'Regiões'
+                    : colorByProp === 'wide_knowledge_area'
+                    ? 'Área de conhecimento'
+                    : 'Área de pesquisa';
             content = Object.entries(captionDict)
                 .slice(0, 10)
                 .map(([type, color]) => (

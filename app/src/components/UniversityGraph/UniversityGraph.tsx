@@ -287,6 +287,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                             currentCaptionModeIndex={currentCaptionModeIndex}
                             captionModes={captionModes}
                             captionMode={captionMode}
+                            colorByProp={COLOR_BY_PROP}
                         />
                         {selectedUniversity && (
                             <NodeDetailsOverlay
@@ -316,8 +317,6 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                                         ) + 1
                                     }º)`]:
                                         selectedUniversity.betweenness_centrality,
-                                    //@ts-ignore
-                                    color: selectedUniversity.color,
                                 }}
                                 exploreNode={() =>
                                     exploreNode(selectedUniversity)

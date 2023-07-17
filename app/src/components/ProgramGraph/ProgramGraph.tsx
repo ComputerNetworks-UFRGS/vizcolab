@@ -15,10 +15,12 @@ import {
     GraphLevel,
     GraphRef,
     PropsOfShareableGraph,
+    captionModes,
 } from '../../App';
 import {
     GraphData,
     getCaptionDict,
+    getNodeColor,
     setCenterForce,
     setChargeForce,
     setLinkForce,
@@ -161,6 +163,33 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         yearRange,
     ]);
 
+    const [currentCaptionModeIndex, setCurrentCaptionModeIndex] = useState(0);
+    const captionMode = captionModes[currentCaptionModeIndex];
+    useEffect(() => {
+        if (!data) return;
+        data.nodes.forEach((n) => {
+            //@ts-ignore
+            delete n.color;
+        });
+        if (captionMode === 'degree' || captionMode === 'betweenness') {
+            data.nodes.forEach((n) => {
+                if (captionMode === 'degree') {
+                    //@ts-ignore
+                    n.color = getNodeColor(n.degree_centrality);
+                }
+                if (captionMode === 'betweenness') {
+                    //@ts-ignore
+                    n.color = getNodeColor(n.betweenness_centrality);
+                }
+            });
+        } else {
+            setTimeout(
+                () => setCaptionDict(getCaptionDict(data, COLOR_BY_PROP)),
+                300,
+            );
+        }
+    }, [captionMode, data]);
+
     const navigate = useNavigate();
 
     const handleBackButton = () => {
@@ -211,6 +240,11 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     captionDict={captionDict}
                     nodesOrderedByBetweenness={nodesOrderedByBetweenness}
                     nodesOrderedByDegree={nodesOrderedByDegree}
+                    setCurrentCaptionModeIndex={setCurrentCaptionModeIndex}
+                    currentCaptionModeIndex={currentCaptionModeIndex}
+                    captionModes={captionModes}
+                    captionMode={captionMode}
+                    colorByProp={COLOR_BY_PROP}
                 />
                 {selectedProgram && (
                     <NodeDetailsOverlay
@@ -260,7 +294,9 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     graphData={data}
                     nodeVal="prod_count"
                     nodeLabel="name"
-                    nodeAutoColorBy={COLOR_BY_PROP}
+                    nodeAutoColorBy={
+                        captionMode === 'colorKey' ? COLOR_BY_PROP : null
+                    }
                     nodeThreeObject={(node) => {
                         const radius = sphereRadius(node.prod_count) * 4;
                         const group = new THREE.Group();
