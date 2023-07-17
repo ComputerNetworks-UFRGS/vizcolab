@@ -19,9 +19,12 @@ import {
     GraphLevel,
     GraphRef,
     PropsOfShareableGraph,
+    captionModes,
 } from '../../App';
 import {
     GraphData,
+    getCaptionDict,
+    getNodeColor,
     setCenterForce,
     setChargeForce,
     setLinkForce,
@@ -30,6 +33,7 @@ import {
 } from '../../helpers/graph_helper';
 import { Link, Node, isSimulationOutput } from '../../helpers/neo4j_helper';
 import DetailLevelSelector from '../DetailLevelSelector';
+import GraphCaptions from '../GraphCaptionsPanel/GraphCaptions';
 import NodeDetailsOverlay from '../NodeDetailsOverlay';
 import YearRangeSlider from '../YearRangeSlider';
 import { Author, getAuthorData, getAuthorsCollabs } from './data-fetching';
@@ -201,6 +205,34 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         }
     }, [author, yearRange, props.contentMode]);
 
+    const [captionDict, setCaptionDict] = useState<Record<string, string>>();
+    const [currentCaptionModeIndex, setCurrentCaptionModeIndex] = useState(0);
+    const captionMode = captionModes[currentCaptionModeIndex];
+    useEffect(() => {
+        if (!data) return;
+        data.nodes.forEach((n) => {
+            //@ts-ignore
+            delete n.color;
+        });
+        if (captionMode === 'degree' || captionMode === 'betweenness') {
+            data.nodes.forEach((n) => {
+                if (captionMode === 'degree') {
+                    //@ts-ignore
+                    n.color = getNodeColor(n.degree_centrality);
+                }
+                if (captionMode === 'betweenness') {
+                    //@ts-ignore
+                    n.color = getNodeColor(n.betweenness_centrality);
+                }
+            });
+        } else {
+            setTimeout(
+                () => setCaptionDict(getCaptionDict(data, COLOR_BY_PROP)),
+                300,
+            );
+        }
+    }, [captionMode, data]);
+
     const handleBackButton = () => {
         if (author) {
             setAuthor(null);
@@ -315,6 +347,20 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     </div>
 
                     <section className="right-panel">
+                        <GraphCaptions
+                            captionDict={captionDict}
+                            nodesOrderedByBetweenness={
+                                nodesOrderedByBetweenness
+                            }
+                            nodesOrderedByDegree={nodesOrderedByDegree}
+                            setCurrentCaptionModeIndex={
+                                setCurrentCaptionModeIndex
+                            }
+                            currentCaptionModeIndex={currentCaptionModeIndex}
+                            captionModes={captionModes}
+                            captionMode={captionMode}
+                            colorByProp={COLOR_BY_PROP}
+                        />
                         {selectedAuthor && (
                             <NodeDetailsOverlay
                                 nodeType="AUTOR"
@@ -376,7 +422,9 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     nodeLabel={(node) =>
                         `<div class="node-label">${node.name} (${node.university})<br><small>${node.research_line}</small></div>`
                     }
-                    nodeAutoColorBy={COLOR_BY_PROP}
+                    nodeAutoColorBy={
+                        captionMode === 'colorKey' ? COLOR_BY_PROP : null
+                    }
                     nodeThreeObject={(node) => {
                         const radius = sphereRadius(node.prod_count) * 8;
                         const group = new THREE.Group();
