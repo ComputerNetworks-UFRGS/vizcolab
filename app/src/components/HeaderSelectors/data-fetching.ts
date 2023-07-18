@@ -25,16 +25,24 @@ export async function getUniversityProgramsList(university) {
 
 export async function getProgramAuthorsList(university, programName) {
     const QUERY = `
-    MATCH (e1:Author {university: "${university}"})-[r:CO_AUTHOR]-(e2:Author)
-    WHERE e1.ies_program in ["${programName}"]
-    WITH e1, e2, 
-         apoc.coll.sum(r.collab_counts_per_year[0..3]) as collabs_count,
-         apoc.coll.sum(e1.prod_counts_per_year[0..3]) as e1_prod_count,
-         apoc.coll.sum(e2.prod_counts_per_year[0..3]) as e2_prod_count
-    WHERE collabs_count > 0 AND e1_prod_count > 0 AND e2_prod_count > 0
-    RETURN DISTINCT e1.name as author
-    ORDER BY author ASC;
-`;
+        MATCH (e1:Author {university: "${university}"})-[r:CO_AUTHOR]-(e2:Author)
+        WHERE e1.ies_program in ["${programName}"]
+        WITH e1, e2, 
+            apoc.coll.sum(r.collab_counts_per_year[0..3]) as collabs_count,
+            apoc.coll.sum(e1.prod_counts_per_year[0..3]) as e1_prod_count,
+            apoc.coll.sum(e2.prod_counts_per_year[0..3]) as e2_prod_count
+        RETURN DISTINCT e1.name as e1_author, e2.name as e2_author
+        ORDER BY e1_author ASC, e2_author ASC;
+    `;
 
-    return (await runQuery(QUERY)).map((r) => r.get('author'));
+    const result = await runQuery(QUERY);
+    const authorList: string[] = [];
+    for (let r of result) {
+        authorList.push(r.get('e1_author'));
+        authorList.push(r.get('e2_author'));
+    }
+
+    // Remove duplicates
+    const uniqueAuthorList = [...new Set(authorList)];
+    return uniqueAuthorList;
 }
