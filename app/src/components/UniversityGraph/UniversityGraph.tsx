@@ -389,7 +389,9 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     height={windowDimensions.height - 50}
                     nodeVal="prod_count"
                     nodeLabel="name"
-                    nodeAutoColorBy={COLOR_BY_PROP}
+                    nodeAutoColorBy={
+                        captionMode === 'colorKey' ? COLOR_BY_PROP : null
+                    }
                     linkColor={() => '#d2dae2'}
                     linkOpacity={0.2}
                     linkWidth={(link) => {
