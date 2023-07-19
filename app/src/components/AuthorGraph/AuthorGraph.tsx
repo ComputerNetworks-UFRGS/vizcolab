@@ -209,13 +209,14 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     const [currentCaptionModeIndex, setCurrentCaptionModeIndex] = useState(0);
     const captionMode = captionModes[currentCaptionModeIndex];
     useEffect(() => {
-        if (!data) return;
-        data.nodes.forEach((n) => {
+        const dataToProcess = authorData || data;
+        if (!dataToProcess) return;
+        dataToProcess.nodes.forEach((n) => {
             //@ts-ignore
             delete n.color;
         });
         if (captionMode === 'degree' || captionMode === 'betweenness') {
-            data.nodes.forEach((n) => {
+            dataToProcess.nodes.forEach((n) => {
                 if (captionMode === 'degree') {
                     //@ts-ignore
                     n.color = getNodeColor(n.degree_centrality);
@@ -225,13 +226,17 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     n.color = getNodeColor(n.betweenness_centrality);
                 }
             });
-        } else {
-            setTimeout(
-                () => setCaptionDict(getCaptionDict(data, COLOR_BY_PROP)),
-                300,
-            );
         }
-    }, [captionMode, data]);
+    }, [captionMode]);
+
+    useEffect(() => {
+        const dataToProcess = authorData || data;
+        if (!dataToProcess) return;
+        setTimeout(
+            () => setCaptionDict(getCaptionDict(dataToProcess, COLOR_BY_PROP)),
+            300,
+        );
+    }, [data, authorData]);
 
     const handleBackButton = () => {
         if (author) {

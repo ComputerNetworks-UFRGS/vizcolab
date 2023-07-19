@@ -296,6 +296,7 @@ $overlay-text-color: #ecf0f1;
             position: absolute;
             right: 0;
             top: 0;
+            height: 90vh;
             width: 350px;
             padding: 1rem;
             display: flex;
@@ -304,6 +305,12 @@ $overlay-text-color: #ecf0f1;
 
             .caption-overlay {
                 @include overlay;
+                max-height: 100%;
+                display: flex;
+                flex-direction: column;
+                overflow: auto;
+                flex-shrink: 1;
+                flex-basis: auto;
 
                 .caption-header {
                     display: flex;
@@ -314,6 +321,8 @@ $overlay-text-color: #ecf0f1;
                     display: flex;
                     flex-direction: column;
                     gap: 5px;
+                    overflow: auto;
+                    padding-bottom: 10px;
 
                     .caption-item {
                         display: flex;
@@ -339,6 +348,16 @@ $overlay-text-color: #ecf0f1;
 
             .node-info-overlay {
                 @include overlay;
+                max-height: 100%;
+                display: flex;
+                flex-direction: column;
+                overflow: auto;
+                flex-shrink: 2;
+                flex-basis: auto;
+
+                .scrollable {
+                    overflow: auto;
+                }
 
                 .details {
                     display: flex;
@@ -386,6 +405,7 @@ $overlay-text-color: #ecf0f1;
                     display: flex;
                     flex-direction: column;
                     gap: 0.6rem;
+                    padding-bottom: 10px;
 
                     .line {
                         display: flex;
@@ -431,7 +451,7 @@ $overlay-text-color: #ecf0f1;
     .MuiDataGrid-row:hover {
         background-color: #546de5 !important;
     }
-.gradient-bar {
-    margin-bottom: -25px;
-}
+    // .gradient-bar {
+    //     margin-bottom: -25px;
+    // }
 }

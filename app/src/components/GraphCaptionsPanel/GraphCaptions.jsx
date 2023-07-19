@@ -84,7 +84,14 @@ function GraphCaptions({
                 </div>
             </h1>
 
-            <div className="items">{content}</div>
+            <div
+                className={
+                    'items' +
+                    (captionMode !== 'colorKey' ? ' items-scrollable' : '')
+                }
+            >
+                {content}
+            </div>
         </div>
     );
 }

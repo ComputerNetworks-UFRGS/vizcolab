@@ -33,61 +33,64 @@ function NodeDetailsOverlay({
         <div className="node-info-overlay">
             <h1>{title}</h1>
             <small>{nodeType}</small>
-            <div className="details">
-                {Object.keys(detailsSchema).map((key) => (
-                    <div className="item" key={key}>
-                        <span className="key">{key}</span>
-                        <span className="value">
-                            {detailsSchema[key] || '-'}
-                        </span>
-                    </div>
-                ))}
-            </div>
-            {exploreNode && (
-                <div className="explore">
-                    <div className="btn" onClick={exploreNode}>
-                        <FontAwesomeIcon
-                            icon={faMagnifyingGlass}
-                            style={{ marginRight: '.5rem' }}
-                        />
-                        Explorar
-                    </div>
-                    <small>Use Ctrl + Clique para explorar um nó</small>
+            <div className="scrollable">
+                <div className="details">
+                    {Object.keys(detailsSchema).map((key) => (
+                        <div className="item" key={key}>
+                            <span className="key">{key}</span>
+                            <span className="value">
+                                {detailsSchema[key] || '-'}
+                            </span>
+                        </div>
+                    ))}
                 </div>
-            )}
-            {topCollaborators.length > 0 && (
-                <>
-                    <br />
-                    <br />
-                    <div className="connections">
-                        <h2>PRINCIPAIS COLABORADORES</h2>
-                        {topCollaborators.length > 0 &&
-                            topCollaborators.map(
-                                ({ author, collabs_count }) =>
-                                    author && (
-                                        <div className="line" key={author.id}>
-                                            <div>
-                                                <div
-                                                    className="name"
-                                                    onClick={() =>
-                                                        selectAuthor(author)
-                                                    }
-                                                >
-                                                    {author.name}
-                                                </div>
-                                                <div className="university">
-                                                    {author.university}
-                                                </div>
-                                            </div>
-                                            <div className="collabs_count">
-                                                {collabs_count}
-                                            </div>
-                                        </div>
-                                    ),
-                            )}
+                {exploreNode && (
+                    <div className="explore">
+                        <div className="btn" onClick={exploreNode}>
+                            <FontAwesomeIcon
+                                icon={faMagnifyingGlass}
+                                style={{ marginRight: '.5rem' }}
+                            />
+                            Explorar
+                        </div>
+                        <small>Use Ctrl + Clique para explorar um nó</small>
                     </div>
-                </>
-            )}
+                )}
+                {topCollaborators.length > 0 && (
+                    <>
+                        <div className="connections">
+                            <h2>PRINCIPAIS COLABORADORES</h2>
+                            {topCollaborators.length > 0 &&
+                                topCollaborators.map(
+                                    ({ author, collabs_count }) =>
+                                        author && (
+                                            <div
+                                                className="line"
+                                                key={author.id}
+                                            >
+                                                <div>
+                                                    <div
+                                                        className="name"
+                                                        onClick={() =>
+                                                            selectAuthor(author)
+                                                        }
+                                                    >
+                                                        {author.name}
+                                                    </div>
+                                                    <div className="university">
+                                                        {author.university}
+                                                    </div>
+                                                </div>
+                                                <div className="collabs_count">
+                                                    {collabs_count}
+                                                </div>
+                                            </div>
+                                        ),
+                                )}
+                        </div>
+                    </>
+                )}
+            </div>
         </div>
     );
 }
