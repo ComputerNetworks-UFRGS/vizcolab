@@ -65,6 +65,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         author,
         setAuthor,
         setSharedState,
+        setCoauthor,
     } = React.useContext(GlobalContext);
 
     useImperativeHandle(
@@ -120,8 +121,34 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     3000, // ms transition duration
                 );
             },
+            focusCoauthor: (coauthorName: string) => {
+                if (!isSimulationOutput(authorData) || !fgRef.current) {
+                    return;
+                }
+                const node = authorData?.nodes.find(
+                    (n) => n.name === coauthorName,
+                );
+
+                if (!node || !node.x || !node.y || !node.z) {
+                    return;
+                }
+                // Aim at node from outside it
+                const distance = 120 + node.prod_count / 100;
+                const distRatio =
+                    1 + distance / Math.hypot(node.x, node.y, node.z);
+
+                fgRef.current.cameraPosition(
+                    {
+                        x: node.x * distRatio,
+                        y: node.y * distRatio,
+                        z: node.z * distRatio,
+                    }, // new position
+                    { x: node.x, y: node.y, z: node.z }, // lookAt ({ x, y, z })
+                    3000, // ms transition duration
+                );
+            },
         }),
-        [data, connectionDensity, author, university, programs],
+        [data, connectionDensity, author, university, programs, authorData],
     );
 
     useEffect(() => {
@@ -242,6 +269,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         if (author) {
             setAuthor(null);
             setSelectedAuthor(null);
+            setCoauthor(undefined);
         } else {
             setSharedState(undefined);
             setPrograms([]);

@@ -46,3 +46,26 @@ export async function getProgramAuthorsList(university, programName) {
     const uniqueAuthorList = [...new Set(authorList)];
     return uniqueAuthorList;
 }
+
+export async function getAuthorCoauthorsList(author_id) {
+    const QUERY = `
+        MATCH (e1:Author {id: ${author_id}})-[r:CO_AUTHOR]-(e2:Author)
+        WITH e1, e2
+        RETURN DISTINCT e2.name as author
+        UNION
+        MATCH (a:Author {id: ${author_id}})-[:CO_AUTHOR]-(e1:Author)-[r:CO_AUTHOR]-(e2:Author)-[:CO_AUTHOR]-(a)
+        WITH e1, e2
+        RETURN DISTINCT e2.name as author;
+    `;
+
+    const result = await runQuery(QUERY);
+    const authorList: string[] = [];
+    for (let r of result) {
+        authorList.push(r.get('author'));
+    }
+
+    // Remove duplicates
+    const uniqueAuthorList = [...new Set(authorList)];
+    return uniqueAuthorList;
+}
+

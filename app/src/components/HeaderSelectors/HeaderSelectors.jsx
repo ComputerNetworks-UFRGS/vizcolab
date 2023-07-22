@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Combobox } from 'react-widgets';
 import { GlobalContext } from '../../App';
 import {
+    getAuthorCoauthorsList,
     getProgramAuthorsList,
     getUniversityNamesList,
     getUniversityProgramsList,
@@ -11,8 +12,10 @@ function HeaderSelectors({ cleared }) {
     const [universityNamesList, setUniversityNamesList] = React.useState([]);
     const [programNamesList, setProgramNamesList] = React.useState([]);
     const [authorNamesList, setAuthorNamesList] = React.useState([]);
+    const [authorCoauthorNamesList, setAuthorCoauthorNamesList] =
+        React.useState([]);
 
-    const { university, programs, setSharedState, graphRef, author } =
+    const { university, programs, setSharedState, graphRef, author, coauthor } =
         React.useContext(GlobalContext);
 
     useEffect(() => {
@@ -36,6 +39,14 @@ function HeaderSelectors({ cleared }) {
             });
         }
     }, [university, programs]);
+
+    useEffect(() => {
+        if (author) {
+            getAuthorCoauthorsList(author.id).then((data) => {
+                setAuthorCoauthorNamesList(data);
+            });
+        }
+    }, [author]);
 
     return (
         <div className="program-selector">
@@ -97,6 +108,26 @@ function HeaderSelectors({ cleared }) {
                         }}
                         data={authorNamesList}
                         disabled={!!author || cleared}
+                    />
+                </div>
+            )}
+            {author && (
+                <div className="selector program">
+                    <span className="label">COAUTOR</span>
+                    <Combobox
+                        placeholder="Selecione um coautor"
+                        busy={authorCoauthorNamesList.length === 0}
+                        value={cleared ? '' : coauthor}
+                        onChange={(collaboratorName) => {
+                            window.history.replaceState(
+                                null,
+                                `VizColab | Visualização de uma rede de colaboração acadêmica brasileira gerada a partir de dados da CAPES`,
+                                '/',
+                            );
+                            setSharedState(null);
+                            graphRef.current.focusCoauthor(collaboratorName);
+                        }}
+                        data={authorCoauthorNamesList}
                     />
                 </div>
             )}

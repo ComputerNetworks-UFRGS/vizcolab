@@ -68,6 +68,7 @@ function App() {
     const [university, setUniversity] = React.useState<string>();
     const [programs, setPrograms] = React.useState<string[]>([]);
     const [author, setAuthor] = React.useState(undefined);
+    const [coauthor, setCoauthor] = React.useState(undefined);
     const [isLoading, setIsLoading] = React.useState(true);
     const [contentMode, setContentMode] = useState<ContentMode>(
         ContentMode._3D,
@@ -181,6 +182,8 @@ function App() {
                 setAuthor,
                 setSharedState,
                 graphRef,
+                coauthor,
+                setCoauthor,
             }}
         >
             <BrowserRouter>
