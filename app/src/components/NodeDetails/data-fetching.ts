@@ -1,4 +1,7 @@
+import MD5 from 'crypto-js/md5';
 import { runQuery } from '../../helpers/neo4j_helper';
+
+const md5 = (data: string) => MD5(data).toString();
 
 export async function getInterRingData(authorId: string) {
     const query = `
@@ -27,6 +30,7 @@ export async function getInterRingData(authorId: string) {
                 coauthorsPerYear[year].push({
                     name: coauthor,
                     productions: Number(collabs),
+                    color: '#' + md5(coauthor).substring(0, 3),
                 });
             }
         }

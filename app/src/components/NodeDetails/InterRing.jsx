@@ -1,29 +1,21 @@
-import React, { useEffect, useState, useRef } from 'react';
 import * as d3 from 'd3';
+import { uniqBy } from 'lodash';
+import React, { useEffect, useRef, useState } from 'react';
 import { getInterRingData } from './data-fetching';
-import { shuffle } from 'lodash';
-
-const colorScheme = d3.schemeSet1
-    .concat(d3.schemePaired)
-    .concat(d3.schemeDark2)
-    .concat(d3.schemeCategory10);
-
-const shuffledColors = shuffle(colorScheme);
-function getColors(n) {
-    const colors = Array(n)
-        .fill()
-        .map((_, i) => shuffledColors[i % shuffledColors.length]);
-    return d3.scaleOrdinal(colors);
-}
 
 function InterRing({ author }) {
     const [data, setData] = useState(null);
     const d3Container = useRef(null);
     const tooltipRef = useRef(null);
 
+    const coauthors = data
+        ? uniqBy([].concat(...Object.values(data)), 'name')
+        : null;
+
     useEffect(() => {
         if (data && d3Container.current) {
             const svg = d3.select(d3Container.current);
+            svg.html('');
             const radius =
                 Math.min(
                     svg.node().parentNode.clientWidth,
@@ -36,10 +28,35 @@ function InterRing({ author }) {
 
             let legendIndex = 0;
 
+            console.log('coauthors: ', coauthors);
+
+            legend
+                .selectAll('g')
+                .data(coauthors)
+                .enter()
+                .append('g')
+                .each(function (d, i) {
+                    d3.select(this)
+                        .append('rect')
+                        .attr('x', 10)
+                        .attr('y', legendIndex * 20)
+                        .attr('width', 10)
+                        .attr('height', 10)
+                        .attr('fill', d.color);
+
+                    d3.select(this)
+                        .append('text')
+                        .attr('x', 30)
+                        .attr('y', legendIndex * 20 + 7)
+                        .text(d.name)
+                        .attr('alignment-baseline', 'middle')
+                        .attr('fill', 'white');
+
+                    legendIndex++;
+                });
+
             Object.keys(data).forEach((year, i) => {
                 console.log('year', year);
-                const colors = getColors(data[year].length);
-
                 const pie = d3.pie().value((d) => d.productions);
                 const arc = d3
                     .arc()
@@ -55,43 +72,15 @@ function InterRing({ author }) {
                     .enter()
                     .append('path')
                     .attr('d', arc)
-                    .attr('fill', (d, i) => colors(i))
+                    .attr('fill', (d, i) => {
+                        return d.data.color;
+                    })
                     .on('mouseover', function (event, d) {
-                        console.log('asdasdasdsadads', d.data.name);
                         tooltipRef.current.innerHTML = d.data.name;
                         tooltipRef.current.style.visibility = 'visible';
                     })
-                    .on('mousemove', function (event, d) {
-                        console.log(event.pageX, event.pageY);
-                        // tooltipRef.current.style.top = event.pageY + 'px';
-                        // tooltipRef.current.style.left = event.pageX + 'px';
-                    })
                     .on('mouseout', function (event, d) {
                         tooltipRef.current.style.visibility = 'hidden';
-                    });
-
-                legend
-                    .selectAll('g')
-                    .data(data[year])
-                    .enter()
-                    .append('g')
-                    .each(function (d, i) {
-                        d3.select(this)
-                            .append('rect')
-                            .attr('x', 10)
-                            .attr('y', legendIndex * 20)
-                            .attr('width', 10)
-                            .attr('height', 10)
-                            .attr('fill', colors(i));
-
-                        d3.select(this)
-                            .append('text')
-                            .attr('x', 30)
-                            .attr('y', legendIndex * 20 + 10)
-                            .text(d.name)
-                            .attr('alignment-baseline', 'middle')
-                            .attr('fill', 'white');
-                        legendIndex++;
                     });
             });
         }
@@ -122,8 +111,8 @@ function InterRing({ author }) {
             ></div>
             <svg
                 className="d3-component"
-                width={1000}
-                height={1200}
+                width={336}
+                height={343 + coauthors?.length * 20}
                 ref={d3Container}
             />
         </div>
