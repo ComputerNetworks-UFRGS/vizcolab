@@ -33,10 +33,10 @@ import {
 } from '../../helpers/graph_helper';
 import { Link, Node, isSimulationOutput } from '../../helpers/neo4j_helper';
 import DetailLevelSelector from '../DetailLevelSelector';
-import GraphCaptions from '../GraphCaptionsPanel/GraphCaptions';
-import NodeDetailsOverlay from '../NodeDetailsOverlay';
+import NodeDetailsOverlay from '../NodeDetails/NodeDetailsOverlay';
 import YearRangeSlider from '../YearRangeSlider';
 import { Author, getAuthorData, getAuthorsCollabs } from './data-fetching';
+import GraphCaptions from '../GraphCaptionsPanel/GraphCaptions.jsx';
 
 const COLOR_BY_PROP = 'research_line';
 
@@ -398,6 +398,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                             <NodeDetailsOverlay
                                 nodeType="AUTOR"
                                 title={selectedAuthor.name}
+                                selectedAuthor={selectedAuthor}
                                 detailsSchema={{
                                     Universidade: selectedAuthor.university,
                                     'Programa IES': selectedAuthor.ies_program,

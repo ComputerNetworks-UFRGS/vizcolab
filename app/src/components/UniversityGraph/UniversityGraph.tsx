@@ -34,7 +34,7 @@ import {
 import { Link, Node, isSimulationOutput } from '../../helpers/neo4j_helper';
 import DetailLevelSelector from '../DetailLevelSelector';
 import GraphCaptions from '../GraphCaptionsPanel/GraphCaptions';
-import NodeDetailsOverlay from '../NodeDetailsOverlay';
+import NodeDetailsOverlay from '../NodeDetails/NodeDetailsOverlay';
 import YearRangeSlider from '../YearRangeSlider';
 import { University, getUniversitiesCollabs } from './data-fetching';
 
