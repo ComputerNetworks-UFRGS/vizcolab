@@ -28,8 +28,6 @@ function InterRing({ author }) {
 
             let legendIndex = 0;
 
-            console.log('coauthors: ', coauthors);
-
             legend
                 .selectAll('g')
                 .data(coauthors)
@@ -75,6 +73,8 @@ function InterRing({ author }) {
                     .attr('fill', (d, i) => {
                         return d.data.color;
                     })
+                    .attr('stroke', '#fff') // Color of the border
+                    .attr('stroke-width', '0.5') // Width of the border
                     .on('mouseover', function (event, d) {
                         tooltipRef.current.innerHTML = d.data.name;
                         tooltipRef.current.style.visibility = 'visible';
@@ -82,6 +82,29 @@ function InterRing({ author }) {
                     .on('mouseout', function (event, d) {
                         tooltipRef.current.style.visibility = 'hidden';
                     });
+
+                // Add year label
+                const textGroup = g.append('g');
+
+                [-1, 0, 1].forEach((dx) => {
+                    [-1, 0, 1].forEach((dy) => {
+                        textGroup
+                            .append('text')
+                            .attr('x', -radius / 10 + dx)
+                            .attr('y', (-radius / 8) * 2 * i - 14 + dy)
+                            .text(year)
+                            .attr('font-size', '15px')
+                            .attr('fill', '#000');
+                    });
+                });
+
+                textGroup
+                    .append('text')
+                    .attr('x', -radius / 10)
+                    .attr('y', (-radius / 8) * 2 * i - 14)
+                    .text(year)
+                    .attr('font-size', '15px')
+                    .attr('fill', '#fff');
             });
         }
     }, [data]);
