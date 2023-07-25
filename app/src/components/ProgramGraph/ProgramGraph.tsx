@@ -90,23 +90,39 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 }
                 const node = data?.nodes.find((n) => n.name === programName);
 
-                if (!node || !node.x || !node.y || !node.z) {
+                if (
+                    !node ||
+                    !node.x ||
+                    !node.y ||
+                    (props.contentMode === ContentMode._3D && !node.z)
+                ) {
                     return;
                 }
-                // Aim at node from outside it
-                const distance = 120 + node.prod_count / 100;
-                const distRatio =
-                    1 + distance / Math.hypot(node.x, node.y, node.z);
 
-                fgRef.current.cameraPosition(
-                    {
-                        x: node.x * distRatio,
-                        y: node.y * distRatio,
-                        z: node.z * distRatio,
-                    }, // new position
-                    { x: node.x, y: node.y, z: node.z }, // lookAt ({ x, y, z })
-                    3000, // ms transition duration
-                );
+                if (props.contentMode === ContentMode._3D) {
+                    // Aim at node from outside it
+                    const distance = 120 + node.prod_count / 100;
+                    const distRatio =
+                        1 + distance / Math.hypot(node.x, node.y, node.z!);
+
+                    fgRef.current.cameraPosition(
+                        {
+                            x: node.x * distRatio,
+                            y: node.y * distRatio,
+                            z: node.z! * distRatio,
+                        }, // new position
+                        { x: node.x, y: node.y, z: node.z! }, // lookAt ({ x, y, z })
+                        3000, // ms transition duration
+                    );
+                }
+
+                if (props.contentMode === ContentMode._2D) {
+                    fgRef.current.zoomToFit(
+                        3000,
+                        300 + node.name.length,
+                        (nodeCandidate) => nodeCandidate.id === node.id,
+                    );
+                }
             },
         }),
         [data, connectionDensity, university],

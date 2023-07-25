@@ -54,7 +54,6 @@ function InterRing({ author }) {
                 });
 
             Object.keys(data).forEach((year, i) => {
-                console.log('year', year);
                 const pie = d3.pie().value((d) => d.productions);
                 const arc = d3
                     .arc()

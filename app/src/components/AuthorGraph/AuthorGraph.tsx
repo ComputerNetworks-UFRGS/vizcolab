@@ -4,6 +4,7 @@ import { Box } from '@mui/material';
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import React, {
     forwardRef,
+    useCallback,
     useEffect,
     useImperativeHandle,
     useRef,
@@ -33,10 +34,10 @@ import {
 } from '../../helpers/graph_helper';
 import { Link, Node, isSimulationOutput } from '../../helpers/neo4j_helper';
 import DetailLevelSelector from '../DetailLevelSelector';
+import GraphCaptions from '../GraphCaptionsPanel/GraphCaptions.jsx';
 import NodeDetailsOverlay from '../NodeDetails/NodeDetailsOverlay';
 import YearRangeSlider from '../YearRangeSlider';
 import { Author, getAuthorData, getAuthorsCollabs } from './data-fetching';
-import GraphCaptions from '../GraphCaptionsPanel/GraphCaptions.jsx';
 
 const COLOR_BY_PROP = 'research_line';
 
@@ -103,23 +104,39 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 }
                 const node = data?.nodes.find((n) => n.name === authorName);
 
-                if (!node || !node.x || !node.y || !node.z) {
+                if (
+                    !node ||
+                    !node.x ||
+                    !node.y ||
+                    (props.contentMode === ContentMode._3D && !node.z)
+                ) {
                     return;
                 }
-                // Aim at node from outside it
-                const distance = 120 + node.prod_count / 100;
-                const distRatio =
-                    1 + distance / Math.hypot(node.x, node.y, node.z);
 
-                fgRef.current.cameraPosition(
-                    {
-                        x: node.x * distRatio,
-                        y: node.y * distRatio,
-                        z: node.z * distRatio,
-                    }, // new position
-                    { x: node.x, y: node.y, z: node.z }, // lookAt ({ x, y, z })
-                    3000, // ms transition duration
-                );
+                if (props.contentMode === ContentMode._3D) {
+                    // Aim at node from outside it
+                    const distance = 120 + node.prod_count / 100;
+                    const distRatio =
+                        1 + distance / Math.hypot(node.x, node.y, node.z!);
+
+                    fgRef.current.cameraPosition(
+                        {
+                            x: node.x * distRatio,
+                            y: node.y * distRatio,
+                            z: node.z! * distRatio,
+                        }, // new position
+                        { x: node.x, y: node.y, z: node.z! }, // lookAt ({ x, y, z })
+                        3000, // ms transition duration
+                    );
+                }
+
+                if (props.contentMode === ContentMode._2D) {
+                    fgRef.current.zoomToFit(
+                        3000,
+                        300 + node.name.length,
+                        (nodeCandidate) => nodeCandidate.id === node.id,
+                    );
+                }
             },
             focusCoauthor: (coauthorName: string) => {
                 if (!isSimulationOutput(authorData) || !fgRef.current) {
@@ -129,23 +146,39 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     (n) => n.name === coauthorName,
                 );
 
-                if (!node || !node.x || !node.y || !node.z) {
+                if (
+                    !node ||
+                    !node.x ||
+                    !node.y ||
+                    (props.contentMode === ContentMode._3D && !node.z)
+                ) {
                     return;
                 }
-                // Aim at node from outside it
-                const distance = 120 + node.prod_count / 100;
-                const distRatio =
-                    1 + distance / Math.hypot(node.x, node.y, node.z);
 
-                fgRef.current.cameraPosition(
-                    {
-                        x: node.x * distRatio,
-                        y: node.y * distRatio,
-                        z: node.z * distRatio,
-                    }, // new position
-                    { x: node.x, y: node.y, z: node.z }, // lookAt ({ x, y, z })
-                    3000, // ms transition duration
-                );
+                if (props.contentMode === ContentMode._3D) {
+                    // Aim at node from outside it
+                    const distance = 120 + node.prod_count / 100;
+                    const distRatio =
+                        1 + distance / Math.hypot(node.x, node.y, node.z!);
+
+                    fgRef.current.cameraPosition(
+                        {
+                            x: node.x * distRatio,
+                            y: node.y * distRatio,
+                            z: node.z! * distRatio,
+                        }, // new position
+                        { x: node.x, y: node.y, z: node.z! }, // lookAt ({ x, y, z })
+                        3000, // ms transition duration
+                    );
+                }
+
+                if (props.contentMode === ContentMode._2D) {
+                    fgRef.current.zoomToFit(
+                        3000,
+                        300 + node.name.length,
+                        (nodeCandidate) => nodeCandidate.id === node.id,
+                    );
+                }
             },
         }),
         [data, connectionDensity, author, university, programs, authorData],
@@ -264,6 +297,33 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             300,
         );
     }, [data, authorData]);
+
+    const nodeCanvasObject = useCallback((node, ctx) => {
+        const label = node.name;
+        const fontSize = 10;
+        ctx.font = `${fontSize}px Sans-Serif`;
+
+        // Circle size could depend on a node property or just a constant
+        const circleRadius = node.prod_count / 1.5;
+
+        // Draw the circle
+        ctx.beginPath();
+        ctx.arc(node.x!, node.y!, circleRadius, 0, 2 * Math.PI, false);
+        ctx.fillStyle = node.color;
+        ctx.fill();
+
+        // Draw the label
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'white';
+
+        // Add a border around the label
+        ctx.strokeStyle = 'black'; // Border color
+        ctx.lineWidth = 3; // Border width
+        ctx.strokeText(label, node.x!, node.y!);
+
+        ctx.fillText(label, node.x!, node.y!);
+    }, []);
 
     const handleBackButton = () => {
         if (author) {
@@ -512,39 +572,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     onBackgroundClick={() => setSelectedAuthor(undefined)}
                     enableNodeDrag={true}
                     backgroundColor="#1E272E"
-                    nodeCanvasObject={(node, ctx) => {
-                        const label = node.name;
-                        const fontSize = 10;
-                        ctx.font = `${fontSize}px Sans-Serif`;
-
-                        // Circle size could depend on a node property or just a constant
-                        const circleRadius = node.prod_count / 1.5;
-
-                        // Draw the circle
-                        ctx.beginPath();
-                        ctx.arc(
-                            node.x!,
-                            node.y!,
-                            circleRadius,
-                            0,
-                            2 * Math.PI,
-                            false,
-                        );
-                        ctx.fillStyle = node.color;
-                        ctx.fill();
-
-                        // Draw the label
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillStyle = 'white';
-
-                        // Add a border around the label
-                        ctx.strokeStyle = 'black'; // Border color
-                        ctx.lineWidth = 3; // Border width
-                        ctx.strokeText(label, node.x!, node.y!);
-
-                        ctx.fillText(label, node.x!, node.y!);
-                    }}
+                    nodeCanvasObject={nodeCanvasObject}
                 />
             )}
             {props.contentMode === ContentMode.Rankings && (
