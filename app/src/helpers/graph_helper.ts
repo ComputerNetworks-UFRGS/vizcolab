@@ -57,9 +57,9 @@ export function getCaptionDict(
 }
 
 export function getNodeColor(centrality: number) {
-    const logScale = d3.scaleLog().domain([0.001, 1]).range([0, 1]);
+    const logScale = d3.scaleLog().domain([1, 0.001]).range([0, 1]);
 
-    const colorScale = d3.scaleSequential(d3.interpolateInferno);
+    const colorScale = d3.scaleSequential(d3.interpolateRdYlGn);
 
     return colorScale(logScale(centrality + 0.001));
 }

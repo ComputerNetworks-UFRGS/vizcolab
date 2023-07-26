@@ -73,11 +73,11 @@ const InfernoGradientBar: React.FC = () => {
                 .append('linearGradient')
                 .attr('id', 'gradient');
 
-            for (let i = 0; i <= 100; i++) {
+            for (let i = 100; i >= 0; i--) {
                 linearGradient
                     .append('stop')
-                    .attr('offset', `${i}%`)
-                    .attr('stop-color', d3.interpolateInferno(i / 100));
+                    .attr('offset', `${100 - i}%`)
+                    .attr('stop-color', d3.interpolateRdYlGn(i / 100));
             }
 
             svg.append('rect')
