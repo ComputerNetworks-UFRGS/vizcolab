@@ -468,7 +468,6 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                         columnDefs={tableModeColumns}
                         defaultColDef={defaultColDef}
                         localeText={AG_GRID_LOCALE_PT_BR}
-                        sideBar={true}
                         onFilterChanged={(event) => {
                             event.api.refreshCells();
                         }}

@@ -1,12 +1,15 @@
 import { faArrowLeft, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Box } from '@mui/material';
-import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
+import { ColDef } from 'ag-grid-community';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
+import { AgGridReact } from 'ag-grid-react';
 import React, {
     forwardRef,
     useCallback,
     useEffect,
     useImperativeHandle,
+    useMemo,
     useRef,
     useState,
 } from 'react';
@@ -22,6 +25,7 @@ import {
     PropsOfShareableGraph,
     captionModes,
 } from '../../App';
+import { AG_GRID_LOCALE_PT_BR } from '../../config/ag-grid-ptbr.locale.js';
 import {
     GraphData,
     getCaptionDict,
@@ -33,6 +37,7 @@ import {
     sphereRadius,
 } from '../../helpers/graph_helper';
 import { Link, Node, isSimulationOutput } from '../../helpers/neo4j_helper';
+import VisibilityTooltipHeader from '../AgGridVisibilityTooltipHeader';
 import DetailLevelSelector from '../DetailLevelSelector';
 import GraphCaptions from '../GraphCaptionsPanel/GraphCaptions.jsx';
 import NodeDetailsOverlay from '../NodeDetails/NodeDetailsOverlay';
@@ -361,67 +366,66 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         return b.degree_centrality - a.degree_centrality;
     });
 
-    const tableModeColumns: GridColDef[] = [
+    const defaultColDef = useMemo<ColDef>(
+        () => ({
+            sortable: true,
+            resizable: true,
+            filter: true,
+            hide: false,
+        }),
+        [],
+    );
+
+    const tableModeColumns: ColDef[] = [
         {
-            field: 'lineNo',
             headerName: '#',
-            width: 5,
-            valueGetter: (params) =>
-                params.api.getRowIndexRelativeToVisibleRows(params.row.id) + 1,
-            headerClassName: 'bold-header',
+            field: 'lineNo',
+            width: 77,
+            valueGetter: (params) => params.node?.rowIndex ?? 0 + 1,
             sortable: false,
-            filterable: false,
-            disableColumnMenu: true,
+            filter: false,
+            suppressMovable: true,
+            headerComponent: VisibilityTooltipHeader,
         },
         {
-            field: 'name',
             headerName: 'Autor',
-            headerClassName: 'bold-header',
+            field: 'name',
             flex: 2,
         },
         {
-            field: 'university',
             headerName: 'Universidade',
-            headerClassName: 'bold-header',
+            field: 'university',
             flex: 1,
         },
         {
-            field: 'ies_program',
             headerName: 'Programa',
-            headerClassName: 'bold-header',
+            field: 'ies_program',
             flex: 1.5,
         },
         {
-            field: 'knowledge_area',
             headerName: 'Área',
-            headerClassName: 'bold-header',
+            field: 'knowledge_area',
             flex: 1.5,
         },
         {
-            field: 'research_line',
             headerName: 'Linha de pesquisa',
-            headerClassName: 'bold-header',
+            field: 'research_line',
             flex: 1.5,
         },
         {
-            field: 'type',
             headerName: 'Tipo',
-            headerClassName: 'bold-header',
+            field: 'type',
             flex: 1,
         },
         {
-            field: 'betweenness_centrality',
             headerName: 'Centralidade de Intermediação',
-            headerClassName: 'bold-header',
+            field: 'betweenness_centrality',
             flex: 1,
-            type: 'number',
         },
         {
-            field: 'degree_centrality',
             headerName: 'Centralidade de Grau',
-            headerClassName: 'bold-header',
+            field: 'degree_centrality',
             flex: 1,
-            type: 'number',
         },
     ];
 
@@ -576,24 +580,23 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 />
             )}
             {props.contentMode === ContentMode.Rankings && (
-                <Box sx={{ height: '94vh', width: '100%' }}>
-                    <DataGrid
-                        localeText={
-                            ptBR.components.MuiDataGrid.defaultProps.localeText
-                        }
-                        rows={data?.nodes ?? []}
-                        columns={tableModeColumns}
-                        initialState={{
-                            pagination: {
-                                paginationModel: {
-                                    pageSize: 30,
-                                },
-                            },
+                <div
+                    className="ag-theme-alpine"
+                    style={{ height: '94vh', width: '100%' }}
+                >
+                    <AgGridReact
+                        rowData={authorData?.nodes ?? data?.nodes ?? []}
+                        columnDefs={tableModeColumns}
+                        defaultColDef={defaultColDef}
+                        localeText={AG_GRID_LOCALE_PT_BR}
+                        onFilterChanged={(event) => {
+                            event.api.refreshCells();
                         }}
-                        pageSizeOptions={[5]}
-                        disableRowSelectionOnClick
-                    />
-                </Box>
+                        onSortChanged={(event) => {
+                            event.api.refreshCells();
+                        }}
+                    ></AgGridReact>
+                </div>
             )}
         </section>
     );
