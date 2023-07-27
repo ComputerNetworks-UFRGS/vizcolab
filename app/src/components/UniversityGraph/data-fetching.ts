@@ -13,8 +13,6 @@ export type University = {
     name: string;
     legal_status: string;
     region: string;
-    betweenness_centrality: number;
-    degree_centrality: number;
 };
 
 export async function getUniversitiesCollabs(
@@ -55,6 +53,7 @@ export async function getUniversitiesCollabs(
 
     const betweennessCentralityDict = centrality.betweenness(g);
     const degreeCentralityDict = centrality.degree(g);
+    const closenessCentralityDict = centrality.closeness(g);
 
     const numberOfNodes = graphData.nodes.length;
     const numberOfPairsNotIncluding =
@@ -66,6 +65,7 @@ export async function getUniversitiesCollabs(
             betweennessCentralityDict[node.id] / numberOfPairsNotIncluding;
         node.degree_centrality =
             degreeCentralityDict[node.id] / numberOfPossibleLinks;
+        node.closeness_centrality = closenessCentralityDict[node.id];
     });
 
     return graphData;

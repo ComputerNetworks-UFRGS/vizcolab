@@ -59,7 +59,12 @@ export enum ContentMode {
     Rankings = 'Rankings',
 }
 
-export const captionModes = ['colorKey', 'betweenness', 'degree'] as const;
+export const captionModes = [
+    'colorKey',
+    'betweenness',
+    'degree',
+    'closeness',
+] as const;
 export type CaptionMode = (typeof captionModes)[number];
 
 export const NUMBER_OF_CENTRALITY_CLASSES = 10;

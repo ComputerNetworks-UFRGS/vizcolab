@@ -62,6 +62,14 @@ function GraphCaptions({
                 </div>
             );
             break;
+        case 'closeness':
+            header = 'Proximidade';
+            content = (
+                <div className="gradient-bar">
+                    <InfernoGradientBar />
+                </div>
+            );
+            break;
         default:
             break;
     }

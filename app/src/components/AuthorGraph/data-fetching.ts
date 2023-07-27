@@ -16,8 +16,6 @@ export type Author = {
     research_line: string;
     type: string;
     university: string;
-    betweenness_centrality: number;
-    degree_centrality: number;
 };
 
 export async function getAuthorsCollabs(
@@ -60,6 +58,7 @@ export async function getAuthorsCollabs(
 
     const betweennessCentralityDict = centrality.betweenness(g);
     const degreeCentralityDict = centrality.degree(g);
+    const closenessCentralityDict = centrality.closeness(g);
 
     const numberOfNodes = graphData.nodes.length;
     const numberOfPairsNotIncluding =
@@ -71,6 +70,7 @@ export async function getAuthorsCollabs(
             betweennessCentralityDict[node.id] / numberOfPairsNotIncluding;
         node.degree_centrality =
             degreeCentralityDict[node.id] / numberOfPossibleLinks;
+        node.closeness_centrality = closenessCentralityDict[node.id];
     });
 
     return graphData;
@@ -119,6 +119,7 @@ export async function getAuthorData(author_id, yearRange: [number, number]) {
 
     const betweennessCentralityDict = centrality.betweenness(g);
     const degreeCentralityDict = centrality.degree(g);
+    const closenessCentralityDict = centrality.closeness(g);
 
     const numberOfNodes = graphData.nodes.length;
     const numberOfPairsNotIncluding =
@@ -130,6 +131,7 @@ export async function getAuthorData(author_id, yearRange: [number, number]) {
             betweennessCentralityDict[node.id] / numberOfPairsNotIncluding;
         node.degree_centrality =
             degreeCentralityDict[node.id] / numberOfPossibleLinks;
+        node.closeness_centrality = closenessCentralityDict[node.id];
     });
 
     return graphData;

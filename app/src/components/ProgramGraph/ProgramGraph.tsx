@@ -195,7 +195,11 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             //@ts-ignore
             delete n.color;
         });
-        if (captionMode === 'degree' || captionMode === 'betweenness') {
+        if (
+            captionMode === 'degree' ||
+            captionMode === 'betweenness' ||
+            captionMode === 'closeness'
+        ) {
             data.nodes.forEach((n) => {
                 if (captionMode === 'degree') {
                     //@ts-ignore
@@ -204,6 +208,10 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 if (captionMode === 'betweenness') {
                     //@ts-ignore
                     n.color = getNodeColor(n.betweenness_centrality);
+                }
+                if (captionMode === 'closeness') {
+                    //@ts-ignore
+                    n.color = getNodeColor(n.closeness_centrality);
                 }
             });
         } else {
@@ -246,6 +254,12 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     const nodesOrderedByDegree = Array.from(data?.nodes ?? []).sort((a, b) => {
         return b.degree_centrality - a.degree_centrality;
     });
+
+    const nodesOrderedByCloseness = Array.from(data?.nodes ?? []).sort(
+        (a, b) => {
+            return b.closeness_centrality - a.closeness_centrality;
+        },
+    );
 
     const defaultColDef = useMemo<ColDef>(
         () => ({
@@ -298,6 +312,11 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             flex: 1,
             resizable: true,
         },
+        {
+            headerName: 'Centralidade de Proximidade',
+            field: 'closeness_centrality',
+            flex: 1,
+        },
     ];
 
     return (
@@ -323,6 +342,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                                 nodesOrderedByBetweenness
                             }
                             nodesOrderedByDegree={nodesOrderedByDegree}
+                            nodesOrderedByCloseness={nodesOrderedByCloseness}
                             setCurrentCaptionModeIndex={
                                 setCurrentCaptionModeIndex
                             }
@@ -358,6 +378,11 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                                         ) + 1
                                     }º)`]:
                                         selectedProgram.betweenness_centrality,
+                                    [`Centralidade de Proximidade (${
+                                        nodesOrderedByCloseness!.findIndex(
+                                            (n) => n.id === selectedProgram.id,
+                                        ) + 1
+                                    }º)`]: selectedProgram.closeness_centrality,
                                 }}
                                 exploreNode={() => exploreNode(selectedProgram)}
                             />

@@ -15,8 +15,6 @@ export type Program = {
     specialty: String;
     university: string;
     wide_knowledge_area: string;
-    betweenness_centrality: number;
-    degree_centrality: number;
 };
 
 // University programs collaborations
@@ -59,6 +57,7 @@ export async function getProgramsCollabs(
 
     const betweennessCentralityDict = centrality.betweenness(g);
     const degreeCentralityDict = centrality.degree(g);
+    const closenessCentralityDict = centrality.closeness(g);
 
     const numberOfNodes = graphData.nodes.length;
     const numberOfPairsNotIncluding =
@@ -70,6 +69,7 @@ export async function getProgramsCollabs(
             betweennessCentralityDict[node.id] / numberOfPairsNotIncluding;
         node.degree_centrality =
             degreeCentralityDict[node.id] / numberOfPossibleLinks;
+        node.closeness_centrality = closenessCentralityDict[node.id];
     });
 
     return graphData;

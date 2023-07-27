@@ -7,6 +7,9 @@ export const FIRST_YEAR_IN_DATASET = 2017;
 export type AbstractNodeBase = {
     id: string;
     prod_count: number;
+    betweenness_centrality: number;
+    degree_centrality: number;
+    closeness_centrality: number;
 };
 
 export type ThreeSimulationNodeBase = AbstractNodeBase & {
