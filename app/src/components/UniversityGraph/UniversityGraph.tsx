@@ -29,6 +29,7 @@ import {
     GraphData,
     getCaptionDict,
     getNodeColor,
+    hexToRgba,
     setCenterForce,
     setChargeForce,
     setLinkForce,
@@ -437,13 +438,15 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     graphData={data}
                     width={windowDimensions.width}
                     height={windowDimensions.height - 50}
-                    nodeVal="prod_count"
-                    nodeLabel="name"
+                    nodeRelSize={1}
+                    nodeVal={(n) => {
+                        return n.prod_count;
+                    }}
+                    nodeLabel={() => ''}
                     nodeAutoColorBy={
                         captionMode === 'colorKey' ? COLOR_BY_PROP : null
                     }
-                    linkColor={() => '#d2dae2'}
-                    linkOpacity={0.2}
+                    linkColor={() => '#d2dae237'}
                     linkWidth={(link) => {
                         return link.collabs_count / 400 + 0.5;
                     }}
@@ -451,38 +454,48 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     onBackgroundClick={() => setSelectedUniversity(undefined)}
                     enableNodeDrag={true}
                     backgroundColor="#1E272E"
-                    nodeCanvasObject={(node, ctx) => {
-                        const label = node.name;
-                        const fontSize = 25;
-                        ctx.font = `${fontSize}px Sans-Serif`;
-
-                        // Circle size could depend on a node property or just a constant
-                        const circleRadius = node.prod_count / 700 + 50;
-
-                        // Draw the circle
+                    nodeCanvasObjectMode={() => 'replace'}
+                    nodeCanvasObject={(node, ctx, globalScale) => {
+                        // Begin path for the node
                         ctx.beginPath();
+
+                        // Draw circle for the node
                         ctx.arc(
                             node.x!,
                             node.y!,
-                            circleRadius,
+                            Math.sqrt(node.prod_count),
                             0,
                             2 * Math.PI,
                             false,
                         );
-                        ctx.fillStyle = node.color;
+
+                        // Fill node with transparent color
+                        ctx.fillStyle = node.color
+                            ? hexToRgba(node.color, 0.9)
+                            : node.color;
                         ctx.fill();
+
+                        // Draw border around the node
+                        ctx.strokeStyle = 'black'; // Border color
+                        ctx.lineWidth = 3; // Border width
+                        ctx.stroke(); // Draw border
+
+                        const label = node.name;
+                        const fontSize =
+                            25 * (Math.sqrt(node.prod_count) / 100);
+                        ctx.font = `${fontSize}px Sans-Serif`;
 
                         // Draw the label
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
                         ctx.fillStyle = 'white';
 
+                        ctx.fillText(label, node.x!, node.y!);
+
                         // Add a border around the label
                         ctx.strokeStyle = 'black'; // Border color
-                        ctx.lineWidth = 3; // Border width
+                        ctx.lineWidth = node.prod_count > 30_000 ? 3 : 1; // Border width
                         ctx.strokeText(label, node.x!, node.y!);
-
-                        ctx.fillText(label, node.x!, node.y!);
                     }}
                 />
             )}

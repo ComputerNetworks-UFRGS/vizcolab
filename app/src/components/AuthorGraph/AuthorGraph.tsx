@@ -30,6 +30,7 @@ import {
     GraphData,
     getCaptionDict,
     getNodeColor,
+    hexToRgba,
     setCenterForce,
     setChargeForce,
     setLinkForce,
@@ -312,30 +313,45 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     }, [data, authorData]);
 
     const nodeCanvasObject = useCallback((node, ctx) => {
-        const label = node.name;
-        const fontSize = 10;
-        ctx.font = `${fontSize}px Sans-Serif`;
+        const fontSize = 25 * (Math.sqrt(node.prod_count * 16) / 100);
 
-        // Circle size could depend on a node property or just a constant
-        const circleRadius = node.prod_count / 1.5;
-
-        // Draw the circle
+        // Begin path for the node
         ctx.beginPath();
-        ctx.arc(node.x!, node.y!, circleRadius, 0, 2 * Math.PI, false);
-        ctx.fillStyle = node.color;
+
+        // Draw circle for the node
+        ctx.arc(
+            node.x!,
+            node.y!,
+            Math.sqrt(node.prod_count * 16),
+            0,
+            2 * Math.PI,
+            false,
+        );
+
+        // Fill node with transparent color
+        ctx.fillStyle = node.color ? hexToRgba(node.color, 0.9) : node.color;
         ctx.fill();
+
+        // Draw border around the node
+        ctx.strokeStyle = 'black'; // Border color
+        ctx.lineWidth = fontSize / 25; // Border width
+        ctx.stroke(); // Draw border
+
+        const label = node.name;
+
+        ctx.font = `${fontSize}px Sans-Serif`;
 
         // Draw the label
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = 'white';
 
+        ctx.fillText(label, node.x!, node.y!);
+
         // Add a border around the label
         ctx.strokeStyle = 'black'; // Border color
-        ctx.lineWidth = 3; // Border width
+        ctx.lineWidth = fontSize / 50; // Border width
         ctx.strokeText(label, node.x!, node.y!);
-
-        ctx.fillText(label, node.x!, node.y!);
     }, []);
 
     const handleBackButton = () => {
@@ -587,15 +603,16 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     graphData={authorData || data}
                     width={windowDimensions.width}
                     height={windowDimensions.height - 50}
-                    nodeVal="prod_count"
-                    nodeLabel="name"
+                    nodeRelSize={1}
+                    nodeVal={(n) => n.prod_count * 16}
+                    nodeLabel={() => ''}
+                    nodeCanvasObjectMode={() => 'replace'}
                     nodeAutoColorBy={
                         captionMode === 'colorKey' ? COLOR_BY_PROP : null
                     }
-                    linkColor={() => '#d2dae2'}
-                    linkOpacity={0.2}
+                    linkColor={() => '#d2dae237'}
                     linkWidth={(link) => {
-                        return link.collabs_count / 5;
+                        return link.collabs_count / 2.5;
                     }}
                     onNodeClick={handleNodeClick}
                     onBackgroundClick={() => setSelectedAuthor(undefined)}

@@ -63,3 +63,8 @@ export function getNodeColor(centrality: number) {
 
     return colorScale(logScale(centrality + 0.001));
 }
+
+export function hexToRgba(hex: string, alpha: number) {
+    const [r, g, b] = hex.match(/\w\w/g)!.map((x) => parseInt(x, 16));
+    return `rgba(${r},${g},${b},${alpha})`;
+}
