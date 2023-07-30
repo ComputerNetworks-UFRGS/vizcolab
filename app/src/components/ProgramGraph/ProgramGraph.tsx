@@ -226,8 +226,8 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     const navigate = useNavigate();
 
     const handleBackButton = () => {
-        setUniversity(null);
-        setSharedState(null);
+        setUniversity(undefined);
+        setSharedState(undefined);
         navigate('/');
     };
 
