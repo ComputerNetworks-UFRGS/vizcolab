@@ -28,6 +28,7 @@ import {
 import { AG_GRID_LOCALE_PT_BR } from '../../config/ag-grid-ptbr.locale.js';
 import {
     GraphData,
+    convertRGBtoRGBA,
     getCaptionDict,
     getNodeColor,
     hexToRgba,
@@ -277,15 +278,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     useEffect(() => {
         const dataToProcess = authorData || data;
         if (!dataToProcess) return;
-        dataToProcess.nodes.forEach((n) => {
-            //@ts-ignore
-            delete n.color;
-        });
-        if (
-            captionMode === 'degree' ||
-            captionMode === 'betweenness' ||
-            captionMode === 'closeness'
-        ) {
+
             dataToProcess.nodes.forEach((n) => {
                 if (captionMode === 'degree') {
                     //@ts-ignore
@@ -299,9 +292,12 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     //@ts-ignore
                     n.color = getNodeColor(n.closeness_centrality);
                 }
+            if (captionMode === 'colorKey') {
+                //@ts-ignore
+                n.color = getNodeColor(n[COLOR_BY_PROP]);
+            }
             });
-        }
-    }, [captionMode]);
+    }, [captionMode, data, authorData]);
 
     useEffect(() => {
         const dataToProcess = authorData || data;
@@ -329,11 +325,13 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         );
 
         // Fill node with transparent color
-        ctx.fillStyle = node.color ? hexToRgba(node.color, 0.9) : node.color;
+        ctx.fillStyle = node.color?.startsWith('#')
+            ? hexToRgba(node.color, 0.9)
+            : convertRGBtoRGBA(node.color, 0.9);
         ctx.fill();
 
         // Draw border around the node
-        ctx.strokeStyle = 'black'; // Border color
+        ctx.strokeStyle = 'white'; // Border color
         ctx.lineWidth = fontSize / 25; // Border width
         ctx.stroke(); // Draw border
 
@@ -561,9 +559,6 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     nodeLabel={(node) =>
                         `<div class="node-label">${node.name} (${node.university})<br><small>${node.research_line}</small></div>`
                     }
-                    nodeAutoColorBy={
-                        captionMode === 'colorKey' ? COLOR_BY_PROP : null
-                    }
                     nodeThreeObject={(node) => {
                         const radius = sphereRadius(node.prod_count) * 8;
                         const group = new THREE.Group();
@@ -607,9 +602,6 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     nodeVal={(n) => n.prod_count * 16}
                     nodeLabel={() => ''}
                     nodeCanvasObjectMode={() => 'replace'}
-                    nodeAutoColorBy={
-                        captionMode === 'colorKey' ? COLOR_BY_PROP : null
-                    }
                     linkColor={() => '#d2dae237'}
                     linkWidth={(link) => {
                         return link.collabs_count / 2.5;

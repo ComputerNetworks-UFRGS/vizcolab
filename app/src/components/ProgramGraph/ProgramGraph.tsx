@@ -20,6 +20,7 @@ import {
 } from '../../App';
 import {
     GraphData,
+    convertRGBtoRGBA,
     getCaptionDict,
     getNodeColor,
     hexToRgba,
@@ -192,15 +193,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     const captionMode = captionModes[currentCaptionModeIndex];
     useEffect(() => {
         if (!data) return;
-        data.nodes.forEach((n) => {
-            //@ts-ignore
-            delete n.color;
-        });
-        if (
-            captionMode === 'degree' ||
-            captionMode === 'betweenness' ||
-            captionMode === 'closeness'
-        ) {
+
             data.nodes.forEach((n) => {
                 if (captionMode === 'degree') {
                     //@ts-ignore
@@ -214,13 +207,16 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     //@ts-ignore
                     n.color = getNodeColor(n.closeness_centrality);
                 }
+            if (captionMode === 'colorKey') {
+                //@ts-ignore
+                n.color = getNodeColor(n[COLOR_BY_PROP]);
+            }
             });
-        } else {
+
             setTimeout(
                 () => setCaptionDict(getCaptionDict(data, COLOR_BY_PROP)),
                 300,
             );
-        }
     }, [captionMode, data]);
 
     const navigate = useNavigate();
@@ -410,9 +406,6 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     graphData={data}
                     nodeVal="prod_count"
                     nodeLabel="name"
-                    nodeAutoColorBy={
-                        captionMode === 'colorKey' ? COLOR_BY_PROP : null
-                    }
                     nodeThreeObject={(node) => {
                         const radius = sphereRadius(node.prod_count) * 4;
                         const group = new THREE.Group();
@@ -452,9 +445,6 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     nodeRelSize={1}
                     nodeVal={(n) => n.prod_count * 16}
                     nodeLabel={() => ''}
-                    nodeAutoColorBy={
-                        captionMode === 'colorKey' ? COLOR_BY_PROP : null
-                    }
                     linkColor={() => '#d2dae237'}
                     linkWidth={(link) => {
                         return link.collabs_count / 5;
@@ -482,13 +472,13 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                         );
 
                         // Fill node with transparent color
-                        ctx.fillStyle = node.color
+                        ctx.fillStyle = node.color?.startsWith('#')
                             ? hexToRgba(node.color, 0.9)
-                            : node.color;
+                            : convertRGBtoRGBA(node.color, 0.9);
                         ctx.fill();
 
                         // Draw border around the node
-                        ctx.strokeStyle = 'black'; // Border color
+                        ctx.strokeStyle = 'white'; // Border color
                         ctx.lineWidth = fontSize / 25; // Border width
                         ctx.stroke(); // Draw border
 
