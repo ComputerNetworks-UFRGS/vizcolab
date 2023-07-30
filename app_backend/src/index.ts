@@ -5,7 +5,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import express from 'express';
 import morgan from 'morgan';
 import { Pool } from 'pg';
-import { graphStateInsertSchema, graphStates } from './db/schema';
+import { graphStates } from './db/schema';
 
 dotenv.config();
 
@@ -21,7 +21,7 @@ const pool = new Pool({
 const db = drizzle(pool, { logger: true });
 
 app.post('/state', async (req, res) => {
-    const state = graphStateInsertSchema.parse({ state: req.body });
+    const state = { state: req.body };
 
     const ids = await db
         .insert(graphStates)

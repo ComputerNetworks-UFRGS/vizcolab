@@ -30,11 +30,17 @@ export type AppState = {
     graphLevel: GraphLevel;
     graphData: GraphData<any>;
     cameraPosition: CameraPosition;
+    lookAt: any;
+    quaternion: any;
+    zoom: number | undefined;
+    centerAt: { x: number; y: number } | undefined;
     connectionDensity: number;
-    yearRange?: [number, number];
+    yearRange: [number, number];
     university?: string;
     programs?: string[];
     author?: string | Node<Author>;
+    contentMode: ContentMode;
+    captionModeIndex: number;
 };
 
 export type SharedState = {
@@ -107,7 +113,17 @@ function App() {
                     `http://localhost:3001/state/${sharedStateId}`,
                 );
                 const sharedState = await res.json();
+                setContentMode(sharedState.state.contentMode);
                 setSharedState(sharedState);
+                if (sharedState.state.university) {
+                    setUniversity(sharedState.state.university);
+                }
+                if (sharedState.state.programs) {
+                    setPrograms(sharedState.state.programs);
+                }
+                if (sharedState.state.author) {
+                    setAuthor(sharedState.state.author);
+                }
                 setIsLoading(false);
             };
             loadState();

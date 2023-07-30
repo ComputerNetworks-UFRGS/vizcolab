@@ -49,6 +49,7 @@ import { Author, getAuthorData, getAuthorsCollabs } from './data-fetching';
 const COLOR_BY_PROP = 'research_line';
 
 const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
+    const [currentCaptionModeIndex, setCurrentCaptionModeIndex] = useState(0);
     const [data, setData] = useState<GraphData<Author>>();
     const [yearRange, setYearRange] = useState<[number, number]>(
         props.sharedState?.state.yearRange ?? [2017, 2020],
@@ -83,7 +84,10 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 if (!fgRef.current || !data) {
                     return;
                 }
-                const camera = fgRef.current.camera();
+                const camera =
+                    props.contentMode === ContentMode._3D
+                        ? fgRef.current.camera()
+                        : undefined;
                 const graphData = isSimulationOutput(data)
                     ? {
                           ...data,
@@ -94,15 +98,27 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                           })),
                       }
                     : data;
-
+                const lookAt = new THREE.Vector3();
+                if (camera) {
+                    camera.getWorldDirection(lookAt);
+                }
                 return {
-                    cameraPosition: camera.position,
+                    cameraPosition: camera ? camera.position : undefined,
+                    lookAt: camera ? lookAt : undefined,
+                    quaternion: camera ? camera.quaternion : undefined,
+                    // @ts-ignore
+                    zoom: camera ? undefined : fgRef.current?.zoom(),
+                    // @ts-ignore
+                    centerAt: camera ? undefined : fgRef.current?.centerAt(),
                     graphData,
                     connectionDensity: connectionDensity,
                     graphLevel: GraphLevel.Authors,
                     author,
                     programs,
                     university,
+                    contentMode: props.contentMode,
+                    captionModeIndex: currentCaptionModeIndex,
+                    yearRange: yearRange,
                 };
             },
             focusAuthor: (authorName: string) => {
@@ -188,7 +204,17 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 }
             },
         }),
-        [data, connectionDensity, author, university, programs, authorData],
+        [
+            data,
+            connectionDensity,
+            author,
+            university,
+            programs,
+            authorData,
+            currentCaptionModeIndex,
+            yearRange,
+            props.contentMode,
+        ],
     );
 
     useEffect(() => {
@@ -205,20 +231,37 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             setChargeForce(fgRef.current, -500, 600);
             setCenterForce(fgRef.current, 1);
         }
-        if (props.sharedState && !programs.length && !author && !university) {
-            const { graphData, cameraPosition, author, university, programs } =
-                props.sharedState.state;
+        if (
+            props.sharedState &&
+            window.location.pathname.split('/shared/')[1]
+        ) {
+            const {
+                graphData,
+                cameraPosition,
+                lookAt,
+                quaternion,
+                connectionDensity,
+                contentMode,
+                centerAt,
+                zoom,
+                captionModeIndex,
+                yearRange,
+            } = props.sharedState.state;
             setData(graphData);
-            fgRef.current!.cameraPosition(cameraPosition);
-            if (university) {
-                setUniversity(university);
+            setCurrentCaptionModeIndex(captionModeIndex);
+            setYearRange(yearRange);
+            if (contentMode === ContentMode._3D) {
+                fgRef.current!.cameraPosition(cameraPosition, lookAt, 0);
+                fgRef.current!.camera().rotation.setFromQuaternion(quaternion);
             }
-            if (author) {
-                setAuthor(author);
+            if (contentMode === ContentMode._2D) {
+                // @ts-ignore
+                fgRef.current!.centerAt(centerAt?.x, centerAt?.y, 0);
+                // @ts-ignore
+                fgRef.current!.zoom(zoom, 0);
             }
-            if (programs?.length) {
-                setPrograms(props.sharedState.state.programs);
-            }
+            setConnectionDensity(connectionDensity);
+            window.history.pushState({}, '', '/');
             setIsLoading(false);
         } else {
             getAuthorsCollabs(
@@ -273,30 +316,30 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     }, [author, yearRange, props.contentMode]);
 
     const [captionDict, setCaptionDict] = useState<Record<string, string>>();
-    const [currentCaptionModeIndex, setCurrentCaptionModeIndex] = useState(0);
     const captionMode = captionModes[currentCaptionModeIndex];
     useEffect(() => {
         const dataToProcess = authorData || data;
         if (!dataToProcess) return;
 
-            dataToProcess.nodes.forEach((n) => {
-                if (captionMode === 'degree') {
-                    //@ts-ignore
-                    n.color = getNodeColor(n.degree_centrality);
-                }
-                if (captionMode === 'betweenness') {
-                    //@ts-ignore
-                    n.color = getNodeColor(n.betweenness_centrality);
-                }
-                if (captionMode === 'closeness') {
-                    //@ts-ignore
-                    n.color = getNodeColor(n.closeness_centrality);
-                }
+        dataToProcess.nodes.forEach((n) => {
+            if (captionMode === 'degree') {
+                //@ts-ignore
+                n.color = getNodeColor(n.degree_centrality);
+            }
+            if (captionMode === 'betweenness') {
+                //@ts-ignore
+                n.color = getNodeColor(n.betweenness_centrality);
+            }
+            if (captionMode === 'closeness') {
+                //@ts-ignore
+                n.color = getNodeColor(n.closeness_centrality);
+            }
             if (captionMode === 'colorKey') {
                 //@ts-ignore
                 n.color = getNodeColor(n[COLOR_BY_PROP]);
             }
-            });
+        });
+        setCaptionDict(getCaptionDict(dataToProcess, COLOR_BY_PROP));
     }, [captionMode, data, authorData]);
 
     useEffect(() => {

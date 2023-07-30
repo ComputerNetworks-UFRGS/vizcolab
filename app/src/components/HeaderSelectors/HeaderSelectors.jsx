@@ -1,3 +1,5 @@
+// prettier-ignore
+/* eslint-disable */
 import React, { useEffect } from 'react';
 import { Combobox } from 'react-widgets';
 import { GlobalContext } from '../../App';
@@ -62,7 +64,6 @@ function HeaderSelectors({ cleared }) {
                             `VizColab | Visualização de uma rede de colaboração acadêmica brasileira gerada a partir de dados da CAPES`,
                             '/',
                         );
-                        setSharedState(undefined);
                         graphRef.current.focusUniversity(universityName);
                     }}
                     data={universityNamesList}
@@ -82,7 +83,6 @@ function HeaderSelectors({ cleared }) {
                                 `VizColab | Visualização de uma rede de colaboração acadêmica brasileira gerada a partir de dados da CAPES`,
                                 '/',
                             );
-                            setSharedState(undefined);
                             graphRef.current.focusProgram(programName);
                         }}
                         data={programNamesList}
@@ -103,7 +103,6 @@ function HeaderSelectors({ cleared }) {
                                 `VizColab | Visualização de uma rede de colaboração acadêmica brasileira gerada a partir de dados da CAPES`,
                                 '/',
                             );
-                            setSharedState(null);
                             graphRef.current.focusAuthor(authorName);
                         }}
                         data={authorNamesList}
@@ -124,7 +123,6 @@ function HeaderSelectors({ cleared }) {
                                 `VizColab | Visualização de uma rede de colaboração acadêmica brasileira gerada a partir de dados da CAPES`,
                                 '/',
                             );
-                            setSharedState(null);
                             graphRef.current.focusCoauthor(collaboratorName);
                         }}
                         data={authorCoauthorNamesList}

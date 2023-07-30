@@ -48,6 +48,7 @@ import YearRangeSlider from '../YearRangeSlider';
 const COLOR_BY_PROP = 'wide_knowledge_area';
 
 const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
+    const [currentCaptionModeIndex, setCurrentCaptionModeIndex] = useState(0);
     const [data, setData] = useState<GraphData<Program>>();
     const [yearRange, setYearRange] = useState<[number, number]>(
         props.sharedState?.state.yearRange ?? [2017, 2020],
@@ -75,18 +76,34 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 if (!fgRef.current || !isSimulationOutput(data)) {
                     return;
                 }
-                const camera = fgRef.current.camera();
+                const camera =
+                    props.contentMode === ContentMode._3D
+                        ? fgRef.current.camera()
+                        : undefined;
                 const linkDefinitions = data.links.map((l) => ({
                     ...l,
                     source: l.source.id,
                     target: l.target.id,
                 }));
+                const lookAt = new THREE.Vector3();
+                if (camera) {
+                    camera.getWorldDirection(lookAt);
+                }
                 return {
-                    cameraPosition: camera.position,
+                    cameraPosition: camera ? camera.position : undefined,
+                    lookAt: camera ? lookAt : undefined,
+                    quaternion: camera ? camera.quaternion : undefined,
+                    // @ts-ignore
+                    zoom: camera ? undefined : fgRef.current?.zoom(),
+                    // @ts-ignore
+                    centerAt: camera ? undefined : fgRef.current?.centerAt(),
                     graphData: { ...data, links: linkDefinitions },
                     connectionDensity: connectionDensity,
                     graphLevel: GraphLevel.Programs,
                     university,
+                    contentMode: props.contentMode,
+                    captionModeIndex: currentCaptionModeIndex,
+                    yearRange: yearRange,
                 };
             },
             focusProgram: (programName: string) => {
@@ -130,7 +147,14 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 }
             },
         }),
-        [data, connectionDensity, university],
+        [
+            data,
+            connectionDensity,
+            university,
+            currentCaptionModeIndex,
+            yearRange,
+            props.contentMode,
+        ],
     );
 
     useEffect(() => {
@@ -154,16 +178,40 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         if (props.contentMode === ContentMode._2D) {
             setChargeForce(fgRef.current, -1500);
         }
-        if (props.sharedState) {
-            const { graphData, cameraPosition, connectionDensity } =
-                props.sharedState.state;
+        if (
+            props.sharedState &&
+            window.location.pathname.split('/shared/')[1]
+        ) {
+            const {
+                graphData,
+                cameraPosition,
+                lookAt,
+                quaternion,
+                connectionDensity,
+                contentMode,
+                centerAt,
+                zoom,
+                captionModeIndex,
+                yearRange,
+            } = props.sharedState.state;
             setData(graphData);
-            fgRef.current!.cameraPosition(cameraPosition);
+            setCurrentCaptionModeIndex(captionModeIndex);
+            setYearRange(yearRange);
+            if (contentMode === ContentMode._3D) {
+                fgRef.current!.cameraPosition(cameraPosition, lookAt, 0);
+                fgRef.current!.camera().rotation.setFromQuaternion(quaternion);
+            }
+            if (contentMode === ContentMode._2D) {
+                // @ts-ignore
+                fgRef.current!.centerAt(centerAt?.x, centerAt?.y, 0);
+                // @ts-ignore
+                fgRef.current!.zoom(zoom, 0);
+            }
+            window.history.pushState({}, '', '/');
             setConnectionDensity(connectionDensity);
             setIsLoading(false);
-            setUniversity(props.sharedState.state.university);
             setTimeout(() => {
-                return setCaptionDict(getCaptionDict(graphData, COLOR_BY_PROP));
+                setCaptionDict(getCaptionDict(graphData, COLOR_BY_PROP));
             }, 300);
         } else {
             if (props.contentMode === ContentMode._3D) {
@@ -185,38 +233,37 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         university,
         connectionDensity,
         props.sharedState,
-        setUniversity,
         yearRange,
+        props.contentMode,
     ]);
 
-    const [currentCaptionModeIndex, setCurrentCaptionModeIndex] = useState(0);
     const captionMode = captionModes[currentCaptionModeIndex];
     useEffect(() => {
         if (!data) return;
 
-            data.nodes.forEach((n) => {
-                if (captionMode === 'degree') {
-                    //@ts-ignore
-                    n.color = getNodeColor(n.degree_centrality);
-                }
-                if (captionMode === 'betweenness') {
-                    //@ts-ignore
-                    n.color = getNodeColor(n.betweenness_centrality);
-                }
-                if (captionMode === 'closeness') {
-                    //@ts-ignore
-                    n.color = getNodeColor(n.closeness_centrality);
-                }
+        data.nodes.forEach((n) => {
+            if (captionMode === 'degree') {
+                //@ts-ignore
+                n.color = getNodeColor(n.degree_centrality);
+            }
+            if (captionMode === 'betweenness') {
+                //@ts-ignore
+                n.color = getNodeColor(n.betweenness_centrality);
+            }
+            if (captionMode === 'closeness') {
+                //@ts-ignore
+                n.color = getNodeColor(n.closeness_centrality);
+            }
             if (captionMode === 'colorKey') {
                 //@ts-ignore
                 n.color = getNodeColor(n[COLOR_BY_PROP]);
             }
-            });
+        });
 
-            setTimeout(
-                () => setCaptionDict(getCaptionDict(data, COLOR_BY_PROP)),
-                300,
-            );
+        setTimeout(
+            () => setCaptionDict(getCaptionDict(data, COLOR_BY_PROP)),
+            300,
+        );
     }, [captionMode, data]);
 
     const navigate = useNavigate();
