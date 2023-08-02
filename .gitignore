@@ -3,3 +3,5 @@ data_processing/neo4j/data
 vizcolab
 vizcolab_db_backup
 *.csv
+.env*
+kubeconfig*
