@@ -70,6 +70,7 @@ export const captionModes = [
     'betweenness',
     'degree',
     'closeness',
+    'eigenvector',
 ] as const;
 export type CaptionMode = (typeof captionModes)[number];
 

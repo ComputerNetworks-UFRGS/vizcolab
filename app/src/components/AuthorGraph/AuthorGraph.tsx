@@ -334,6 +334,10 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 //@ts-ignore
                 n.color = getNodeColor(n.closeness_centrality);
             }
+            if (captionMode === 'eigenvector') {
+                //@ts-ignore
+                n.color = getNodeColor(n.eigenvector_centrality);
+            }
             if (captionMode === 'colorKey') {
                 //@ts-ignore
                 n.color = getNodeColor(n[COLOR_BY_PROP]);
@@ -437,6 +441,12 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         },
     );
 
+    const nodesOrderedByEigenvector = Array.from(data?.nodes ?? []).sort(
+        (a, b) => {
+            return b.eigenvector_centrality - a.eigenvector_centrality;
+        },
+    );
+
     const defaultColDef = useMemo<ColDef>(
         () => ({
             sortable: true,
@@ -503,6 +513,11 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             field: 'closeness_centrality',
             flex: 1,
         },
+        {
+            headerName: 'Centralidade de Autovetor',
+            field: 'eigenvector_centrality',
+            flex: 1,
+        },
     ];
 
     return (
@@ -527,6 +542,9 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                             }
                             nodesOrderedByDegree={nodesOrderedByDegree}
                             nodesOrderedByCloseness={nodesOrderedByCloseness}
+                            nodesOrderedByEigenvector={
+                                nodesOrderedByEigenvector
+                            }
                             setCurrentCaptionModeIndex={
                                 setCurrentCaptionModeIndex
                             }
@@ -565,6 +583,12 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                                             (n) => n.id === selectedAuthor.id,
                                         ) + 1
                                     }º)`]: selectedAuthor.closeness_centrality,
+                                    [`Centralidade de Autovetor (${
+                                        nodesOrderedByEigenvector!.findIndex(
+                                            (n) => n.id === selectedAuthor.id,
+                                        ) + 1
+                                    }º)`]:
+                                        selectedAuthor.eigenvector_centrality,
                                 }}
                                 exploreNode={
                                     !authorData ||

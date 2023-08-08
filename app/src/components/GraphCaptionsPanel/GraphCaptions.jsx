@@ -70,6 +70,14 @@ function GraphCaptions({
                 </div>
             );
             break;
+        case 'eigenvector':
+            header = 'Autovalor';
+            content = (
+                <div className="gradient-bar">
+                    <InfernoGradientBar />
+                </div>
+            );
+            break;
         default:
             break;
     }

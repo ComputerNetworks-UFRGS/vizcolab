@@ -10,6 +10,7 @@ export type AbstractNodeBase = {
     betweenness_centrality: number;
     degree_centrality: number;
     closeness_centrality: number;
+    eigenvector_centrality: number;
 };
 
 export type ThreeSimulationNodeBase = AbstractNodeBase & {

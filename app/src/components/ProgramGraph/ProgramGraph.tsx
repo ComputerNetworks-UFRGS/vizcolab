@@ -254,6 +254,10 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 //@ts-ignore
                 n.color = getNodeColor(n.closeness_centrality);
             }
+            if (captionMode === 'eigenvector') {
+                //@ts-ignore
+                n.color = getNodeColor(n.eigenvector_centrality);
+            }
             if (captionMode === 'colorKey') {
                 //@ts-ignore
                 n.color = getNodeColor(n[COLOR_BY_PROP]);
@@ -302,6 +306,12 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     const nodesOrderedByCloseness = Array.from(data?.nodes ?? []).sort(
         (a, b) => {
             return b.closeness_centrality - a.closeness_centrality;
+        },
+    );
+
+    const nodesOrderedByEigenvector = Array.from(data?.nodes ?? []).sort(
+        (a, b) => {
+            return b.eigenvector_centrality - a.eigenvector_centrality;
         },
     );
 
@@ -361,6 +371,11 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             field: 'closeness_centrality',
             flex: 1,
         },
+        {
+            headerName: 'Centralidade de Autovetor',
+            field: 'eigenvector_centrality',
+            flex: 1,
+        },
     ];
 
     return (
@@ -387,6 +402,9 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                             }
                             nodesOrderedByDegree={nodesOrderedByDegree}
                             nodesOrderedByCloseness={nodesOrderedByCloseness}
+                            nodesOrderedByEigenvector={
+                                nodesOrderedByEigenvector
+                            }
                             setCurrentCaptionModeIndex={
                                 setCurrentCaptionModeIndex
                             }
@@ -427,6 +445,12 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                                             (n) => n.id === selectedProgram.id,
                                         ) + 1
                                     }º)`]: selectedProgram.closeness_centrality,
+                                    [`Centralidade de Autovetor (${
+                                        nodesOrderedByEigenvector!.findIndex(
+                                            (n) => n.id === selectedProgram.id,
+                                        ) + 1
+                                    }º)`]:
+                                        selectedProgram.eigenvector_centrality,
                                 }}
                                 exploreNode={() => exploreNode(selectedProgram)}
                             />

@@ -1,3 +1,4 @@
+import nj from 'networkjs';
 import {
     FIRST_YEAR_IN_DATASET,
     parseCollabsResults,
@@ -5,6 +6,11 @@ import {
 } from '../../helpers/neo4j_helper';
 var centrality = require('ngraph.centrality');
 var g = require('ngraph.graph')();
+
+const networkJsGraphConstructor = nj.datastructures.Graph;
+const networkJsGraph = new networkJsGraphConstructor();
+
+const { eigenvector_centrality } = nj.algorithms.centrality;
 
 export type Author = {
     abnt_name: string;
@@ -54,11 +60,13 @@ export async function getAuthorsCollabs(
     graphData.links.forEach((link) => {
         if (link.source === 'NaN' || link.target === 'NaN') return;
         g.addLink(link.source, link.target);
+        networkJsGraph.add_edges_from([[link.source, link.target]]);
     });
 
     const betweennessCentralityDict = centrality.betweenness(g);
     const degreeCentralityDict = centrality.degree(g);
     const closenessCentralityDict = centrality.closeness(g);
+    const eigenvectorCentralityDict = eigenvector_centrality(networkJsGraph);
 
     const numberOfNodes = graphData.nodes.length;
     const numberOfPairsNotIncluding =
@@ -71,6 +79,7 @@ export async function getAuthorsCollabs(
         node.degree_centrality =
             degreeCentralityDict[node.id] / numberOfPossibleLinks;
         node.closeness_centrality = closenessCentralityDict[node.id];
+        node.eigenvector_centrality = eigenvectorCentralityDict[node.id];
     });
 
     return graphData;
