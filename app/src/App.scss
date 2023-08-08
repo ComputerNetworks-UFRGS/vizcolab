@@ -452,4 +452,11 @@ $overlay-text-color: #ecf0f1;
         background-color: #546de5 !important;
     }
 
+    .scale-btn {
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        background-color: #546de5;
+        display: inline-block; 
+        cursor: pointer;
+    }
 }

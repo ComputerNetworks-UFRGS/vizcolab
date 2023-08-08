@@ -49,6 +49,7 @@ const COLOR_BY_PROP = 'region';
 
 const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     const [currentCaptionModeIndex, setCurrentCaptionModeIndex] = useState(0);
+    const [scaleMode, setScaleMode] = useState('log');
     const [data, setData] = useState<GraphData<University>>();
     const [windowDimensions, setWindowDimensions] = useState({
         width: window.innerWidth,
@@ -164,19 +165,19 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         data.nodes.forEach((n) => {
             if (captionMode === 'degree') {
                 //@ts-ignore
-                n.color = getNodeColor(n.degree_centrality);
+                n.color = getNodeColor(n.degree_centrality, scaleMode);
             }
             if (captionMode === 'betweenness') {
                 //@ts-ignore
-                n.color = getNodeColor(n.betweenness_centrality);
+                n.color = getNodeColor(n.betweenness_centrality, scaleMode);
             }
             if (captionMode === 'closeness') {
                 //@ts-ignore
-                n.color = getNodeColor(n.closeness_centrality);
+                n.color = getNodeColor(n.closeness_centrality, scaleMode);
             }
             if (captionMode === 'eigenvector') {
                 //@ts-ignore
-                n.color = getNodeColor(n.eigenvector_centrality);
+                n.color = getNodeColor(n.eigenvector_centrality, scaleMode);
             }
             if (captionMode === 'colorKey') {
                 //@ts-ignore
@@ -188,7 +189,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             () => setCaptionDict(getCaptionDict(data, COLOR_BY_PROP)),
             300,
         );
-    }, [captionMode, data]);
+    }, [captionMode, data, scaleMode]);
 
     useEffect(() => {
         if (props.contentMode !== ContentMode.Rankings) {
@@ -386,6 +387,8 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                             setCurrentCaptionModeIndex={
                                 setCurrentCaptionModeIndex
                             }
+                            setScaleMode={setScaleMode}
+                            scaleMode={scaleMode}
                             currentCaptionModeIndex={currentCaptionModeIndex}
                             captionModes={captionModes}
                             captionMode={captionMode}

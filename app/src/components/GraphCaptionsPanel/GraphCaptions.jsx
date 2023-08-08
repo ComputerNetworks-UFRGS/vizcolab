@@ -10,6 +10,8 @@ function GraphCaptions({
     captionModes,
     captionMode,
     colorByProp,
+    setScaleMode,
+    scaleMode,
 }) {
     if (!captionDict) return <div />;
 
@@ -22,6 +24,10 @@ function GraphCaptions({
         setCurrentCaptionModeIndex(
             (currentCaptionModeIndex + 1) % captionModes.length,
         );
+
+    const switchScaleMode = () => {
+        setScaleMode(scaleMode === 'linear' ? 'log' : 'linear');
+    };
 
     let content;
     let header;
@@ -49,7 +55,10 @@ function GraphCaptions({
             header = 'Intermediação';
             content = (
                 <div className="gradient-bar">
-                    <InfernoGradientBar />
+                    <InfernoGradientBar scaleMode={scaleMode} />
+                    <div className="scale-btn" onClick={switchScaleMode}>
+                        {scaleMode === 'log' ? 'Logarítmica' : 'Linear'}
+                    </div>
                 </div>
             );
 
@@ -58,7 +67,10 @@ function GraphCaptions({
             header = 'Grau';
             content = (
                 <div className="gradient-bar">
-                    <InfernoGradientBar />
+                    <InfernoGradientBar scaleMode={scaleMode} />
+                    <div className="scale-btn" onClick={switchScaleMode}>
+                        {scaleMode === 'log' ? 'Logarítmica' : 'Linear'}
+                    </div>
                 </div>
             );
             break;
@@ -66,7 +78,10 @@ function GraphCaptions({
             header = 'Proximidade';
             content = (
                 <div className="gradient-bar">
-                    <InfernoGradientBar />
+                    <InfernoGradientBar scaleMode={scaleMode} />
+                    <div className="scale-btn" onClick={switchScaleMode}>
+                        {scaleMode === 'log' ? 'Logarítmica' : 'Linear'}
+                    </div>
                 </div>
             );
             break;
@@ -74,7 +89,10 @@ function GraphCaptions({
             header = 'Autovalor';
             content = (
                 <div className="gradient-bar">
-                    <InfernoGradientBar />
+                    <InfernoGradientBar scaleMode={scaleMode} />
+                    <div className="scale-btn" onClick={switchScaleMode}>
+                        {scaleMode === 'log' ? 'Logarítmica' : 'Linear'}
+                    </div>
                 </div>
             );
             break;

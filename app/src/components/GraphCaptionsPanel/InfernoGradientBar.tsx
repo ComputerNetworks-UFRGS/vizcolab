@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 function formatLabel(value: number): string {
     if (value >= 0.1) return value.toFixed(1);
+    if (value === 0) return '..0';
 
     const exponentialForm = value.toExponential(1);
     const [base, exponent] = exponentialForm.split('e');
@@ -28,7 +29,12 @@ function formatLabel(value: number): string {
     return `10${superscriptExponent}`;
 }
 
-const InfernoGradientBar: React.FC = () => {
+type InfernoGradientBarProps = {
+    scaleMode: string;
+};
+const InfernoGradientBar: React.FC<InfernoGradientBarProps> = ({
+    scaleMode = 'log',
+}) => {
     const svgRef = useRef<SVGSVGElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [containerWidth, setContainerWidth] = useState<number>(0);
@@ -51,14 +57,19 @@ const InfernoGradientBar: React.FC = () => {
         };
     }, []);
 
-    const logScale = d3
-        .scaleLog()
-        .domain([0.001, 1])
-        .range([0, containerWidth]);
+    const scale =
+        scaleMode === 'log'
+            ? d3.scaleLog().domain([0.001, 1]).range([0, containerWidth])
+            : d3.scaleLinear().domain([0.001, 1]).range([0, containerWidth]);
 
-    const labels = [0.001, 0.01, 0.1, 0.2, 0.5, 1].map((val) => {
+    const valuesToLabel =
+        scaleMode === 'log'
+            ? [0.001, 0.01, 0.1, 0.2, 0.5, 1]
+            : [0, 0.2, 0.4, 0.6, 0.8, 1];
+
+    const labels = valuesToLabel.map((val) => {
         return {
-            position: logScale(val),
+            position: scale(val),
             label: formatLabel(val),
         };
     });
@@ -110,7 +121,7 @@ const InfernoGradientBar: React.FC = () => {
                     .text(label.label);
             });
         }
-    }, [labels, containerWidth]);
+    }, [labels, containerWidth, scaleMode]);
 
     return (
         <div ref={containerRef}>

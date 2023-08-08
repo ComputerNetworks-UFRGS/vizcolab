@@ -50,6 +50,7 @@ const COLOR_BY_PROP = 'research_line';
 
 const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     const [currentCaptionModeIndex, setCurrentCaptionModeIndex] = useState(0);
+    const [scaleMode, setScaleMode] = useState('log');
     const [data, setData] = useState<GraphData<Author>>();
     const [yearRange, setYearRange] = useState<[number, number]>(
         props.sharedState?.state.yearRange ?? [2017, 2020],
@@ -324,19 +325,19 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         dataToProcess.nodes.forEach((n) => {
             if (captionMode === 'degree') {
                 //@ts-ignore
-                n.color = getNodeColor(n.degree_centrality);
+                n.color = getNodeColor(n.degree_centrality, scaleMode);
             }
             if (captionMode === 'betweenness') {
                 //@ts-ignore
-                n.color = getNodeColor(n.betweenness_centrality);
+                n.color = getNodeColor(n.betweenness_centrality, scaleMode);
             }
             if (captionMode === 'closeness') {
                 //@ts-ignore
-                n.color = getNodeColor(n.closeness_centrality);
+                n.color = getNodeColor(n.closeness_centrality, scaleMode);
             }
             if (captionMode === 'eigenvector') {
                 //@ts-ignore
-                n.color = getNodeColor(n.eigenvector_centrality);
+                n.color = getNodeColor(n.eigenvector_centrality, scaleMode);
             }
             if (captionMode === 'colorKey') {
                 //@ts-ignore
@@ -344,7 +345,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             }
         });
         setCaptionDict(getCaptionDict(dataToProcess, COLOR_BY_PROP));
-    }, [captionMode, data, authorData]);
+    }, [captionMode, data, authorData, scaleMode]);
 
     useEffect(() => {
         const dataToProcess = authorData || data;
@@ -548,6 +549,8 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                             setCurrentCaptionModeIndex={
                                 setCurrentCaptionModeIndex
                             }
+                            setScaleMode={setScaleMode}
+                            scaleMode={scaleMode}
                             currentCaptionModeIndex={currentCaptionModeIndex}
                             captionModes={captionModes}
                             captionMode={captionMode}

@@ -60,15 +60,20 @@ export function getCaptionDict(
 }
 
 const autoColorScale = scaleOrdinal(schemePaired);
-export function getNodeColor(prop: number | string) {
+export function getNodeColor(prop: number | string, scaleMode: string = 'log') {
     if (typeof prop === 'string' || prop === undefined) {
         return autoColorScale(prop ?? 'region');
     }
     const logScale = d3.scaleLog().domain([1, 0.001]).range([0, 1]);
+    const linearScale = d3.scaleLinear().domain([1, 0.001]).range([0, 1]);
 
     const colorScale = d3.scaleSequential(d3.interpolateRdYlGn);
 
-    return colorScale(logScale(prop + 0.001));
+    return colorScale(
+        scaleMode === 'log'
+            ? logScale(prop + 0.001)
+            : linearScale(prop + 0.001),
+    );
 }
 
 export function hexToRgba(hex: string, alpha: number) {

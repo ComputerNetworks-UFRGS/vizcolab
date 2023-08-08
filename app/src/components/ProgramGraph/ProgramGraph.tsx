@@ -49,6 +49,7 @@ const COLOR_BY_PROP = 'wide_knowledge_area';
 
 const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     const [currentCaptionModeIndex, setCurrentCaptionModeIndex] = useState(0);
+    const [scaleMode, setScaleMode] = useState('log');
     const [data, setData] = useState<GraphData<Program>>();
     const [yearRange, setYearRange] = useState<[number, number]>(
         props.sharedState?.state.yearRange ?? [2017, 2020],
@@ -244,19 +245,19 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         data.nodes.forEach((n) => {
             if (captionMode === 'degree') {
                 //@ts-ignore
-                n.color = getNodeColor(n.degree_centrality);
+                n.color = getNodeColor(n.degree_centrality, scaleMode);
             }
             if (captionMode === 'betweenness') {
                 //@ts-ignore
-                n.color = getNodeColor(n.betweenness_centrality);
+                n.color = getNodeColor(n.betweenness_centrality, scaleMode);
             }
             if (captionMode === 'closeness') {
                 //@ts-ignore
-                n.color = getNodeColor(n.closeness_centrality);
+                n.color = getNodeColor(n.closeness_centrality, scaleMode);
             }
             if (captionMode === 'eigenvector') {
                 //@ts-ignore
-                n.color = getNodeColor(n.eigenvector_centrality);
+                n.color = getNodeColor(n.eigenvector_centrality, scaleMode);
             }
             if (captionMode === 'colorKey') {
                 //@ts-ignore
@@ -268,7 +269,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             () => setCaptionDict(getCaptionDict(data, COLOR_BY_PROP)),
             300,
         );
-    }, [captionMode, data]);
+    }, [captionMode, data, scaleMode]);
 
     const navigate = useNavigate();
 
@@ -412,6 +413,8 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                             captionModes={captionModes}
                             captionMode={captionMode}
                             colorByProp={COLOR_BY_PROP}
+                            setScaleMode={setScaleMode}
+                            scaleMode={scaleMode}
                         />
                         {selectedProgram && (
                             <NodeDetailsOverlay
