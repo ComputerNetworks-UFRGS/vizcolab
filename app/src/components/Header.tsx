@@ -17,7 +17,7 @@ const Header = ({ onShare, setContentMode }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [shareUrl, setShareUrl] = useState<string | null>(null);
     const [headerSelectorsCleared, setHeaderSelectorsCleared] = useState(false);
-    const { setUniversity, setPrograms, setAuthor, setSharedState } =
+    const { setUniversity, setPrograms, setAuthor, setSharedState, author } =
         React.useContext(GlobalContext);
     const navigate = useNavigate();
 
@@ -52,9 +52,10 @@ const Header = ({ onShare, setContentMode }) => {
             <div className="right">
                 <div className="logo">
                     <span onClick={goToHome}>
-                        <FontAwesomeIcon icon={faCircleNodes} />
+                        {!author && <FontAwesomeIcon icon={faCircleNodes} />}
                         &nbsp;
-                        <b>Viz</b>Colab&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <b>Viz</b>Colab&nbsp;&nbsp;&nbsp;
+                        {!author && <>&nbsp;&nbsp;</>}
                     </span>
                     <span
                         className="mode-button"
@@ -65,7 +66,7 @@ const Header = ({ onShare, setContentMode }) => {
                     >
                         3D
                     </span>
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    &nbsp;&nbsp;&nbsp;{!author && <>&nbsp;&nbsp;</>}
                     <span
                         className="mode-button"
                         onClick={() => {
@@ -75,7 +76,7 @@ const Header = ({ onShare, setContentMode }) => {
                     >
                         2D
                     </span>
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    &nbsp;&nbsp;&nbsp;{!author && <>&nbsp;&nbsp;</>}
                     <FontAwesomeIcon
                         className="trophy"
                         icon={faTrophy}
