@@ -123,7 +123,15 @@ export function parseCollabsResults<T>(records: any[]): GraphData<T> {
             const e1_prod_count = r.get('e1_prod_count');
             const e2_prod_count = r.get('e2_prod_count');
 
-            if (!e1_prod_count || !e2_prod_count || !collabs_count) {
+            if (
+                !e1_prod_count ||
+                !e2_prod_count ||
+                !collabs_count ||
+                !e1.name ||
+                !e2.name ||
+                !e1.id ||
+                !e2.id
+            ) {
                 return null;
             }
 
