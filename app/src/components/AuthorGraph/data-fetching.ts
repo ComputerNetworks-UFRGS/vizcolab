@@ -9,6 +9,7 @@ var g = require('ngraph.graph')();
 
 const networkJsGraphConstructor = nj.datastructures.Graph;
 const networkJsGraph = new networkJsGraphConstructor();
+const networkJsGraphForAuthorData = new networkJsGraphConstructor();
 
 const { eigenvector_centrality } = nj.algorithms.centrality;
 
@@ -124,11 +125,17 @@ export async function getAuthorData(author_id, yearRange: [number, number]) {
     graphData.links.forEach((link) => {
         if (link.source === 'NaN' || link.target === 'NaN') return;
         g.addLink(link.source, link.target);
+        networkJsGraphForAuthorData.add_edges_from([
+            [link.source, link.target],
+        ]);
     });
 
     const betweennessCentralityDict = centrality.betweenness(g);
     const degreeCentralityDict = centrality.degree(g);
     const closenessCentralityDict = centrality.closeness(g);
+    const eigenvectorCentralityDict = eigenvector_centrality(
+        networkJsGraphForAuthorData,
+    );
 
     const numberOfNodes = graphData.nodes.length;
     const numberOfPairsNotIncluding =
@@ -141,6 +148,7 @@ export async function getAuthorData(author_id, yearRange: [number, number]) {
         node.degree_centrality =
             degreeCentralityDict[node.id] / numberOfPossibleLinks;
         node.closeness_centrality = closenessCentralityDict[node.id];
+        node.eigenvector_centrality = eigenvectorCentralityDict[node.id];
     });
 
     return graphData;
