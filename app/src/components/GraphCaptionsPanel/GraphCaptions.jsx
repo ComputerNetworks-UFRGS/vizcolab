@@ -101,7 +101,10 @@ function GraphCaptions({
     }
 
     return (
-        <div className="caption-overlay">
+        <div
+            className="caption-overlay"
+            style={{ flexShrink: captionMode === 'colorKey' ? 1 : 0 }}
+        >
             <h1 className="caption-header">
                 <div>{header}</div>
                 <div>
