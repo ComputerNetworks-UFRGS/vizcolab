@@ -86,7 +86,7 @@ function GraphCaptions({
             );
             break;
         case 'eigenvector':
-            header = 'Autovalor';
+            header = 'Autovetor';
             content = (
                 <div className="gradient-bar">
                     <InfernoGradientBar scaleMode={scaleMode} />
