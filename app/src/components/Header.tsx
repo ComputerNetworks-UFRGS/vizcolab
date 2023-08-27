@@ -47,6 +47,20 @@ const Header = ({ onShare, setContentMode }) => {
         navigate('/');
     };
 
+    const [isCopied, setIsCopied] = useState(false);
+
+    const copyToClipboard = () => {
+        navigator.clipboard
+            .writeText(shareUrl ?? '')
+            .then(() => {
+                setIsCopied(true);
+                setTimeout(() => setIsCopied(false), 550);
+            })
+            .catch((err) => {
+                console.error('Could not copy text: ', err);
+            });
+    };
+
     return (
         <section className="header">
             <div className="right">
@@ -109,8 +123,46 @@ const Header = ({ onShare, setContentMode }) => {
                     </div>
                 ) : (
                     <div>
-                        <h2>URL para compartilhamento: </h2>
-                        <p>{shareUrl}</p>
+                        <h2
+                            style={{
+                                color: 'black',
+                            }}
+                        >
+                            URL para compartilhamento:
+                        </h2>
+                        <div
+                            style={{
+                                position: 'relative',
+                            }}
+                        >
+                            <input
+                                value={shareUrl ?? ''}
+                                style={{
+                                    width: '93.5%',
+                                    padding: '10px',
+                                    border: '1px solid #ccc',
+                                    borderRadius: '4px',
+                                }}
+                                readOnly
+                            />
+                            <div
+                                onClick={copyToClipboard}
+                                style={{
+                                    position: 'absolute',
+                                    right: '1px',
+                                    top: '0',
+                                    padding: '0.59rem 0.95rem',
+                                    borderRadius: '0px 5px 5px 0px',
+                                    backgroundColor: '#546de5',
+                                    color: 'white',
+                                    display: 'inline-block',
+                                    cursor: 'pointer',
+                                    float: 'right',
+                                }}
+                            >
+                                {isCopied ? 'Copiado!' : 'Copiar'}
+                            </div>
+                        </div>
                     </div>
                 )}
             </Modal>
