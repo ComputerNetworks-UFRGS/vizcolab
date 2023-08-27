@@ -59,9 +59,17 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         useState<Node<University>>();
     const [isLoading, setIsLoading] = useState(true);
     const [captionDict, setCaptionDict] = useState<Record<string, string>>();
-    const [connectionDensity, setConnectionDensity] = useState(
-        props.sharedState?.state.connectionDensity ?? 3,
-    );
+    const [connectionDensity, setConnectionDensity] = useState(() => {
+        let fromLS: any = window.localStorage.getItem('connectionDensity');
+        if (fromLS) {
+            fromLS = Number(fromLS);
+        }
+        return props.sharedState?.state.connectionDensity ?? fromLS ?? 3;
+    });
+    const setConnectionDensityWithLS = (density: number) => {
+        window.localStorage.setItem('connectionDensity', density.toString());
+        setConnectionDensity(density);
+    };
     const [yearRange, setYearRange] = useState<[number, number]>(
         props.sharedState?.state.yearRange ?? [2017, 2020],
     );
@@ -309,7 +317,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             headerName: '#',
             width: 77,
             valueGetter: (params) => {
-                return params?.node?.rowIndex ?? 0 + 1;
+                return (params?.node?.rowIndex ?? 0) + 1;
             },
             sortable: false,
             filter: false,
@@ -453,7 +461,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
 
                     <DetailLevelSelector
                         density={connectionDensity}
-                        setDensity={setConnectionDensity}
+                        setDensity={setConnectionDensityWithLS}
                     />
                 </>
             )}

@@ -62,9 +62,17 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         height: window.innerHeight,
     });
     const [isLoading, setIsLoading] = useState(true);
-    const [connectionDensity, setConnectionDensity] = useState(
-        props.sharedState?.state.connectionDensity ?? 3,
-    );
+    const [connectionDensity, setConnectionDensity] = useState(() => {
+        let fromLS: any = window.localStorage.getItem('connectionDensity');
+        if (fromLS) {
+            fromLS = Number(fromLS);
+        }
+        return props.sharedState?.state.connectionDensity ?? fromLS ?? 3;
+    });
+    const setConnectionDensityWithLS = (density: number) => {
+        window.localStorage.setItem('connectionDensity', density.toString());
+        setConnectionDensity(density);
+    };
     const fgRef = useRef<ForceGraphMethods<Node<Author>, Link<Node<Author>>>>();
 
     const {
@@ -261,7 +269,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 // @ts-ignore
                 fgRef.current!.zoom(zoom, 0);
             }
-            setConnectionDensity(connectionDensity);
+            setConnectionDensityWithLS(connectionDensity);
             window.history.pushState({}, '', '/');
             setIsLoading(false);
         } else {
@@ -463,7 +471,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             headerName: '#',
             field: 'lineNo',
             width: 77,
-            valueGetter: (params) => params.node?.rowIndex ?? 0 + 1,
+            valueGetter: (params) => (params.node?.rowIndex ?? 0) + 1,
             sortable: false,
             filter: false,
             suppressMovable: true,
@@ -497,6 +505,11 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         {
             headerName: 'Tipo',
             field: 'type',
+            flex: 1,
+        },
+        {
+            headerName: 'Produções',
+            field: 'prod_count',
             flex: 1,
         },
         {
@@ -613,7 +626,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                     {!authorData && (
                         <DetailLevelSelector
                             density={connectionDensity}
-                            setDensity={setConnectionDensity}
+                            setDensity={setConnectionDensityWithLS}
                         />
                     )}
                 </>

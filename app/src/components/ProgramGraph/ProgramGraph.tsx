@@ -61,9 +61,17 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     const [selectedProgram, setSelectedProgram] = useState<Node<Program>>();
     const [isLoading, setIsLoading] = useState(true);
     const [captionDict, setCaptionDict] = useState<Record<string, string>>();
-    const [connectionDensity, setConnectionDensity] = useState(
-        props.sharedState?.state.connectionDensity ?? 3,
-    );
+    const [connectionDensity, setConnectionDensity] = useState(() => {
+        let fromLS: any = window.localStorage.getItem('connectionDensity');
+        if (fromLS) {
+            fromLS = Number(fromLS);
+        }
+        return props.sharedState?.state.connectionDensity ?? fromLS ?? 3;
+    });
+    const setConnectionDensityWithLS = (density: number) => {
+        window.localStorage.setItem('connectionDensity', density.toString());
+        setConnectionDensity(density);
+    };
     const fgRef =
         useRef<ForceGraphMethods<Node<Program>, Link<Node<Program>>>>();
 
@@ -209,7 +217,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
                 fgRef.current!.zoom(zoom, 0);
             }
             window.history.pushState({}, '', '/');
-            setConnectionDensity(connectionDensity);
+            setConnectionDensityWithLS(connectionDensity);
             setIsLoading(false);
             setTimeout(() => {
                 setCaptionDict(getCaptionDict(graphData, COLOR_BY_PROP));
@@ -331,7 +339,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             headerName: '#',
             field: 'lineNo',
             width: 77,
-            valueGetter: (params) => params.node?.rowIndex ?? 0 + 1,
+            valueGetter: (params) => (params.node?.rowIndex ?? 0) + 1,
             sortable: false,
             filter: false,
             suppressMovable: true,
@@ -352,6 +360,12 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         {
             headerName: 'Área',
             field: 'knowledge_area',
+            flex: 1,
+            resizable: true,
+        },
+        {
+            headerName: 'Produções',
+            field: 'prod_count',
             flex: 1,
             resizable: true,
         },
@@ -467,7 +481,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
 
                     <DetailLevelSelector
                         density={connectionDensity}
-                        setDensity={setConnectionDensity}
+                        setDensity={setConnectionDensityWithLS}
                     />
                 </>
             )}
