@@ -46,6 +46,7 @@ import VisibilityTooltipHeader from '../AgGridVisibilityTooltipHeader';
 import YearRangeSlider from '../YearRangeSlider';
 
 const COLOR_BY_PROP = 'wide_knowledge_area';
+const columnVisibilityKey = 'columnVisibilityPrograms';
 
 const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     const [currentCaptionModeIndex, setCurrentCaptionModeIndex] = useState(0);
@@ -342,6 +343,11 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         [],
     );
 
+    const visibilitiesFromLS = window.localStorage.getItem(columnVisibilityKey);
+    const visibilities = visibilitiesFromLS
+        ? new Map(JSON.parse(visibilitiesFromLS))
+        : false;
+
     const tableModeColumns: ColDef[] = [
         {
             headerName: '#',
@@ -352,52 +358,75 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             filter: false,
             suppressMovable: true,
             headerComponent: VisibilityTooltipHeader,
+            headerComponentParams: {
+                yearRange: yearRange,
+                setYearRange: setYearRangeWithLS,
+                columnVisibilityKey: columnVisibilityKey,
+            },
         },
         {
             headerName: 'Programa',
             field: 'full_name',
             flex: 2,
             resizable: true,
+            hide: visibilities ? !visibilities.get('full_name') : false,
         },
         {
             headerName: 'Grande área do conhecimento',
             field: 'wide_knowledge_area',
             flex: 1.5,
             resizable: true,
+            hide: visibilities
+                ? !visibilities.get('wide_knowledge_area')
+                : false,
         },
         {
             headerName: 'Área',
             field: 'knowledge_area',
             flex: 1,
             resizable: true,
+            hide: visibilities ? !visibilities.get('knowledge_area') : false,
         },
         {
             headerName: 'Produções',
             field: 'prod_count',
             flex: 1,
             resizable: true,
+            hide: visibilities ? !visibilities.get('prod_count') : false,
         },
         {
             headerName: 'Centralidade de Intermediação',
             field: 'betweenness_centrality',
             flex: 1,
             resizable: true,
+            hide: visibilities
+                ? !visibilities.get('betweenness_centrality')
+                : false,
         },
         {
             headerName: 'Centralidade de Grau',
             field: 'degree_centrality',
             flex: 1,
             resizable: true,
+            hide: visibilities ? !visibilities.get('degree_centrality') : false,
         },
         {
             headerName: 'Centralidade de Proximidade',
             field: 'closeness_centrality',
             flex: 1,
+            resizable: true,
+            hide: visibilities
+                ? !visibilities.get('closeness_centrality')
+                : false,
         },
         {
             headerName: 'Centralidade de Autovetor',
             field: 'eigenvector_centrality',
             flex: 1,
+            resizable: true,
+            hide: visibilities
+                ? !visibilities.get('eigenvector_centrality')
+                : false,
         },
     ];
 

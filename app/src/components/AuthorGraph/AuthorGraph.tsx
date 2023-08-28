@@ -47,6 +47,7 @@ import YearRangeSlider from '../YearRangeSlider';
 import { Author, getAuthorData, getAuthorsCollabs } from './data-fetching';
 
 const COLOR_BY_PROP = 'research_line';
+const columnVisibilityKey = 'columnVisibilityAuthors';
 
 const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     const [yearRange, setYearRange] = useState(() => {
@@ -475,6 +476,11 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         [],
     );
 
+    const visibilitiesFromLS = window.localStorage.getItem(columnVisibilityKey);
+    const visibilities = visibilitiesFromLS
+        ? new Map(JSON.parse(visibilitiesFromLS))
+        : false;
+
     const tableModeColumns: ColDef[] = [
         {
             headerName: '#',
@@ -485,61 +491,83 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             filter: false,
             suppressMovable: true,
             headerComponent: VisibilityTooltipHeader,
+            headerComponentParams: {
+                yearRange: yearRange,
+                setYearRange: setYearRangeWithLS,
+                columnVisibilityKey: columnVisibilityKey,
+            },
         },
         {
             headerName: 'Autor',
             field: 'name',
             flex: 2,
+            hide: visibilities ? !visibilities.get('name') : false,
         },
         {
             headerName: 'Universidade',
             field: 'university',
             flex: 1,
+            hide: visibilities ? !visibilities.get('university') : false,
         },
         {
             headerName: 'Programa',
             field: 'ies_program',
             flex: 1.5,
+            hide: visibilities ? !visibilities.get('ies_program') : false,
         },
         {
             headerName: 'Área',
             field: 'knowledge_area',
             flex: 1.5,
+            hide: visibilities ? !visibilities.get('knowledge_area') : false,
         },
         {
             headerName: 'Linha de pesquisa',
             field: 'research_line',
             flex: 1.5,
+            hide: visibilities ? !visibilities.get('research_line') : false,
         },
         {
             headerName: 'Tipo',
             field: 'type',
             flex: 1,
+            hide: visibilities ? !visibilities.get('type') : false,
         },
         {
             headerName: 'Produções',
             field: 'prod_count',
             flex: 1,
+            hide: visibilities ? !visibilities.get('prod_count') : false,
         },
         {
             headerName: 'Centralidade de Intermediação',
             field: 'betweenness_centrality',
             flex: 1,
+            hide: visibilities
+                ? !visibilities.get('betweenness_centrality')
+                : false,
         },
         {
             headerName: 'Centralidade de Grau',
             field: 'degree_centrality',
             flex: 1,
+            hide: visibilities ? !visibilities.get('degree_centrality') : false,
         },
         {
             headerName: 'Centralidade de Proximidade',
             field: 'closeness_centrality',
             flex: 1,
+            hide: visibilities
+                ? !visibilities.get('closeness_centrality')
+                : false,
         },
         {
             headerName: 'Centralidade de Autovetor',
             field: 'eigenvector_centrality',
             flex: 1,
+            hide: visibilities
+                ? !visibilities.get('eigenvector_centrality')
+                : false,
         },
     ];
 

@@ -46,6 +46,7 @@ import YearRangeSlider from '../YearRangeSlider';
 import { University, getUniversitiesCollabs } from './data-fetching';
 
 const COLOR_BY_PROP = 'region';
+const columnVisibilityKey = 'columnVisibilityUniversities';
 
 const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
     const [currentCaptionModeIndex, setCurrentCaptionModeIndex] = useState(0);
@@ -320,6 +321,11 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         [],
     );
 
+    const visibilitiesFromLS = window.localStorage.getItem(columnVisibilityKey);
+    const visibilities = visibilitiesFromLS
+        ? new Map(JSON.parse(visibilitiesFromLS))
+        : false;
+
     const tableModeColumns: ColDef<Node<University>>[] = [
         {
             headerName: '#',
@@ -332,51 +338,79 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             suppressMenu: true,
             suppressMovable: true,
             headerComponent: VisibilityTooltipHeader,
+            headerComponentParams: {
+                yearRange: yearRange,
+                setYearRange: setYearRangeWithLS,
+                columnVisibilityKey: columnVisibilityKey,
+            },
         },
         {
             headerName: 'Universidade',
             field: 'full_name',
             flex: 2,
+            hide: visibilities
+                ? !(visibilities.get('full_name') as boolean)
+                : false,
         },
         {
             headerName: 'UF',
             field: 'uf',
             width: 90,
+            hide: visibilities ? !(visibilities.get('uf') as boolean) : false,
         },
         {
             headerName: 'Cidade',
             field: 'city',
             flex: 0.7,
+            hide: visibilities ? !(visibilities.get('city') as boolean) : false,
         },
         {
             headerName: 'Região',
             field: 'region',
             flex: 0.5,
+            hide: visibilities
+                ? !(visibilities.get('region') as boolean)
+                : false,
         },
         {
             headerName: 'Produções',
             field: 'prod_count',
             flex: 0.5,
+            hide: visibilities
+                ? !(visibilities.get('prod_count') as boolean)
+                : false,
         },
         {
             headerName: 'Centralidade de Intermediação',
             field: 'betweenness_centrality',
             flex: 1,
+            hide: visibilities
+                ? !(visibilities.get('betweenness_centrality') as boolean)
+                : false,
         },
         {
             headerName: 'Centralidade de Grau',
             field: 'degree_centrality',
             flex: 1,
+            hide: visibilities
+                ? !(visibilities.get('degree_centrality') as boolean)
+                : false,
         },
         {
             headerName: 'Centralidade de Proximidade',
             field: 'closeness_centrality',
             flex: 1,
+            hide: visibilities
+                ? !(visibilities.get('closeness_centrality') as boolean)
+                : false,
         },
         {
             headerName: 'Centralidade de Autovetor',
             field: 'eigenvector_centrality',
             flex: 1,
+            hide: visibilities
+                ? !(visibilities.get('eigenvector_centrality') as boolean)
+                : false,
         },
     ];
 
