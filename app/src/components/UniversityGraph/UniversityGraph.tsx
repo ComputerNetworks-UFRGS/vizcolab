@@ -70,9 +70,17 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
         window.localStorage.setItem('connectionDensity', density.toString());
         setConnectionDensity(density);
     };
-    const [yearRange, setYearRange] = useState<[number, number]>(
-        props.sharedState?.state.yearRange ?? [2017, 2020],
-    );
+    const [yearRange, setYearRange] = useState(() => {
+        let fromLS: any = window.localStorage.getItem('yearRange');
+        if (fromLS) {
+            fromLS = JSON.parse(fromLS);
+        }
+        return props.sharedState?.state.yearRange ?? fromLS ?? [2017, 2020];
+    });
+    const setYearRangeWithLS = (range: [number, number]) => {
+        window.localStorage.setItem('yearRange', JSON.stringify(range));
+        setYearRange(range);
+    };
     const fgRef =
         useRef<ForceGraphMethods<Node<University>, Link<Node<University>>>>();
     useImperativeHandle(
@@ -228,7 +236,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             } = props.sharedState.state;
             setData(graphData);
             setCurrentCaptionModeIndex(captionModeIndex);
-            setYearRange(yearRange);
+            setYearRangeWithLS(yearRange);
             if (contentMode === ContentMode._3D) {
                 fgRef.current!.cameraPosition(cameraPosition, lookAt, 0);
                 fgRef.current!.camera().rotation.setFromQuaternion(quaternion);
@@ -456,7 +464,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
 
                     <YearRangeSlider
                         yearRange={yearRange}
-                        setYearRange={setYearRange}
+                        setYearRange={setYearRangeWithLS}
                     />
 
                     <DetailLevelSelector

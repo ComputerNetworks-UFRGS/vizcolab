@@ -49,12 +49,21 @@ import { Author, getAuthorData, getAuthorsCollabs } from './data-fetching';
 const COLOR_BY_PROP = 'research_line';
 
 const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
+    const [yearRange, setYearRange] = useState(() => {
+        let fromLS: any = window.localStorage.getItem('yearRange');
+        if (fromLS) {
+            fromLS = JSON.parse(fromLS);
+        }
+        return props.sharedState?.state.yearRange ?? fromLS ?? [2017, 2020];
+    });
+    const setYearRangeWithLS = (range: [number, number]) => {
+        window.localStorage.setItem('yearRange', JSON.stringify(range));
+        setYearRange(range);
+    };
+
     const [currentCaptionModeIndex, setCurrentCaptionModeIndex] = useState(0);
     const [scaleMode, setScaleMode] = useState('log');
     const [data, setData] = useState<GraphData<Author>>();
-    const [yearRange, setYearRange] = useState<[number, number]>(
-        props.sharedState?.state.yearRange ?? [2017, 2020],
-    );
     const [authorData, setAuthorData] = useState<GraphData<Author>>();
     const [selectedAuthor, setSelectedAuthor] = useState<Node<Author> | null>();
     const [windowDimensions, setWindowDimensions] = useState({
@@ -258,7 +267,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
             } = props.sharedState.state;
             setData(graphData);
             setCurrentCaptionModeIndex(captionModeIndex);
-            setYearRange(yearRange);
+            setYearRangeWithLS(yearRange);
             if (contentMode === ContentMode._3D) {
                 fgRef.current!.cameraPosition(cameraPosition, lookAt, 0);
                 fgRef.current!.camera().rotation.setFromQuaternion(quaternion);
@@ -620,7 +629,7 @@ const Graph = forwardRef<GraphRef, PropsOfShareableGraph>((props, ref) => {
 
                     <YearRangeSlider
                         yearRange={yearRange}
-                        setYearRange={setYearRange}
+                        setYearRange={setYearRangeWithLS}
                     />
 
                     {!authorData && (
