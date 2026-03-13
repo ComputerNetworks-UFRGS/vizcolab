@@ -1,0 +1,13 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1682281668872,
+      "tag": "0000_petite_mockingbird",
+      "breakpoints": false
+    }
+  ]
+}

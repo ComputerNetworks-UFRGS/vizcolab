@@ -1,0 +1,36 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "id": "8f2030fd-c38e-4cb3-98b4-78d639ee60e0",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "graph_states": {
+      "name": "graph_states",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "state": {
+          "name": "state",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {}
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  }
+}
