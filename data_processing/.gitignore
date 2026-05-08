@@ -3,3 +3,4 @@ output
 __pycache__
 sandbox.*
 .ipynb_checkpoints
+.cache_parquet

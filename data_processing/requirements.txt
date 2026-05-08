@@ -1,2 +1,8 @@
+ipykernel
 pandas
 joblib
+xlsx2csv
+polars
+rapidfuzz
+neo4j
+python-dotenv

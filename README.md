@@ -1,65 +1,87 @@
 # VizColab
-Uma ferramenta para visualização de uma rede de colaborações acadêmicas de escala nacional gerada a partir de dados da CAPES.
+A tool for visualizing a national-scale academic collaboration network generated from CAPES (Brazilian Federal Agency for Support and Evaluation of Graduate Education) data.
 
 Demo: http://vizcolab.inf.ufrgs.br/
 
-O repositório é dividido em duas partes:
+The repository is divided into two main parts:
 
-- No diretório `data_processing` se encontram os notebooks Jupyter e scripts para o processamento dos dados que compõem a rede de colaborações e queries para a importação dos dados na base de dados Neo4J.
-- No diretorio `app` se encontra a aplicação web de visualização da rede de colaborações construida com as bibliotecas [React](https://reactjs.org/) e [3D Forces Graph](https://github.com/vasturiano/react-force-graph).
+- `data_processing/`: Contains high-performance Python scripts (using Polars) for data normalization, yearly aggregation, and automated Neo4j data loading.
+- `app/`: The web application for network visualization, built with [React](https://reactjs.org/) and [3D Force-Directed Graph](https://github.com/vasturiano/react-force-graph).
 
-## Geração do grafo de colaborações
+---
 
-### Processamento de dados
+## 🚀 Collaborative Graph Generation
 
-As etapas a seguir descrevem o processo de processamento dos dados brutos da CAPES para a construção da rede de colaborações.
+### 1. Data Processing
+The pipeline converts raw CAPES datasets into a normalized graph structure.
 
-- Faça o [download](https://infufrgsbr-my.sharepoint.com/:f:/g/personal/esfischer_inf_ufrgs_br/Esnbvcy5TtxBmFiWG9IQt1oBYyfkXbYrT5yyZR6hr3I6eA?e=oEJHtN) do diretório `datasets` e insira-o dentro do diretório `data_processing/`. Os datasets disponibilizados são referentes ao quidriênio 2017-2020. Caso queira incluir dados mais recentes, faça o download dos arquivos no [Portal de dados abertos da CAPES](https://dadosabertos.capes.gov.br/dataset/) e insira-os no diretório `data_processing/datasets/` seguindo a estrutura de diretórios e nomeação dos arquivos existente.
+1. **Download Datasets**: Download the `datasets` directory and place it inside `data_processing/`. The provided datasets cover the 2017-2020 quadrennium. For more recent data, download files from the [CAPES Open Data Portal](https://dadosabertos.capes.gov.br/dataset/) and follow the existing directory structure.
+2. **Install Dependencies**:
+   ```bash
+   pip install -r data_processing/requirements.txt
+   ```
+3. **Run the Full Pipeline**:
+   Execute the master script to process productions, authors, institutions, and programs:
+   ```bash
+   cd data_processing
+   python -m scripts.run_all
+   ```
+   *This script replaces the legacy Jupyter notebooks with a high-performance streaming architecture.*
 
-- Instale as dependências Python3:
+4. **Generate Yearly Aggregations**:
+   To enable the time-slider features in the app, generate yearly collaboration and production counts:
+   ```bash
+   python -m scripts.aggregate_yearly
+   ```
+   This generates `..._counts_per_year` properties required for the frontend queries.
 
-  `python3 -m pip install -r requirements.txt`
+### 2. Neo4j Deployment (Kubernetes)
+The application requires a Neo4j instance with **APOC** and **Graph Data Science (GDS)** plugins enabled.
 
-- O processamento dos datesets é dividido em três notebooks Jupyter distintos, disponíveis no diretório `data_processing/`:
+1. **Configuration**: Use the provided Helm values file: `kubernetes/neo4j/values.yaml`.
+2. **Deploy via Helm**:
+   ```bash
+   helm repo add neo4j https://helm.neo4j.com/neo4j
+   helm install neo4j neo4j/neo4j -f kubernetes/neo4j/values.yaml --namespace vizcolab
+   ```
+   The configuration in `values.yaml` automatically handles:
+   - Plugin installation (APOC & GDS) via `NEO4J_PLUGINS`.
+   - Security procedures and allowlists.
+   - Resource allocations.
 
-  1. `authors_grouping.ipynb`: processa o dataset de autores, fazendo a concatenação dos arquivos .csv, sanitização e normalização dos dados e agrupamento dos autores com múltiplas entradas no dataset. Após executado, o notebook gera dois arquivos no diretório `data_processing/output/`: `processed_authors_preliminary.csv` e `processed_authors_complete.csv`. Qualquer um deles pode ser utilizado para a geração da rede de co-autorias. Entretanto, enquanto o arquivo preliminar será gerado em minutos após as etapas de merge por `id` e por `nome do autor`, o arquivo completo provavelmente levará dias para ser gerado, já que depende do processamento complexo de merge por pontuação.
+### 3. Data Import
+Once Neo4j is running, use the automated loader to ingest the processed CSVs:
 
-  2. `prod_grouping.ipynb`: processa o dataset de produções, fazendo a concatenação dos arquivos .csv, sanitização e normalização dos dados e agrupamento das produções com múltiplas entradas no dataset. Após executado, o notebook gera dois arquivos no diretório `data_processing/output/`: `prod_id_replacements.json` (contém um mapa para substituição dos identificadores de produções que foram agrupadas e deixaram de existir) e `processed_productions.csv` (contém a lista final de produções academicas que irá compor a rede de co-autorias).
+1. **Port Forwarding** (if running locally):
+   ```bash
+   kubectl port-forward svc/neo4j 7687:7687 7474:7474 -n vizcolab
+   ```
+2. **Run the Loader**:
+   ```bash
+   cd data_processing
+   python -m scripts.load_neo4j
+   ```
+   This script will:
+   - Create the `vizcolab` database.
+   - Provision the `web_user` with read-only permissions.
+   - Perform batch ingestion of millions of nodes and relationships using optimized Cypher `UNWIND` queries.
 
-  3. `universities_and_programs.ipynb`: processa dados de instituições de ensino superior e programas de pós-graduação. Após executado, o notebook gera dois arquivos no diretório `data_processing/output/`: `universities.csv` e `programs.csv`.
+---
 
-- Após a execução dos notebooks, execute o script de pós processamento disponível em `data_processing/scripts/authors_post_processing.py`. Esse script fará a substituição dos identificadores de produções que foram agrupadas e deixaram de existir, inferência dos dados de linha de pesquisa de autores e seleção das propriedades finais de cada autor, gerando os arquivos `final_authors.csv` e `co_authorships.csv` no diretório `data_processing/output/`.
+## 💻 Running the Web Application
 
-Obs.: O diretório `output` contendo os arquivos resultantes do processamento de dados já realizado está disponível [aqui](https://infufrgsbr-my.sharepoint.com/:f:/g/personal/esfischer_inf_ufrgs_br/Es5ZjLLTQWBCiGga9H9SEcwBvH5ib51tivmgiFxYSVeRsg?e=dPvcqw).
+1. **Configuration**: In the `app/` directory, create a `.env` file based on `.env.example`. Ensure the Neo4j credentials match the `web_user` created during the import phase.
+2. **Build the Image**:
+   ```bash
+   docker build -t vizcolab-app .
+   ```
+3. **Run the Container**:
+   ```bash
+   docker run -p 8000:80 vizcolab-app
+   ```
+4. **Access**: Open http://localhost:8000 in your browser.
 
-### Importação dos dados para o Neo4J
+---
 
-- Instancie um container docker com a imagem oficial do Neo4J disponível em <https://hub.docker.com/_/neo4j>. Para isso, execute o comando:
-
-  `docker run --publish=7474:7474 --publish=7687:7687 --volume=$HOME/neo4j/data:/data --volume=$HOME/neo4j/import:/var/lib/neo4j/import --env NEO4J_AUTH=neo4j/neo4j neo4j`
-
-  Obs.: Se necessário, altera as portas de acesso ao Neo4J e a senha de acesso.
-
-- Mova os arquivos gerados na etapa de processamento para o diretório `import` do container docker do Neo4J. Isso pode ser feito utilizando o comando:
-
-  `docker cp data_processing/output/ neo4j:/var/lib/neo4j/import/`
-
-- Acesse o Neo4J através do navegador em <http://localhost:7474> e crie um novo banco de dados.
-
-- Execute sequencialmente as queries disponíveis no arquivo `data_processing/neo4j_queries.cql` para importação dos dados para o banco de dados.
-
-- Crie um usuário com a role 'reader' para acesso da aplicação ao banco de dados. Por padrão, o usuário deve ser `web_user` e a senha deve ser `web_user`. Essas credenciais permitem apenas a leitura de dados e serão usados pela aplicação web para a consulta dos dados.
-
-## Instanciação da aplicação VizColab
-
-- No diretório `app/`, crie um arquivo `.env` com as variáveis de ambiente declaradas no arquivo de exemplo `.env.example`. Verifique se as portas e credenciais de acesso ao banco de dados estão de acordo com as configuradas no Neo4J.
-
-- Gere a imagem docker da aplicação executando o comando:
-
-  `docker build -t vizcolab-app .`
-
-- Execute o container da aplicação com o comando:
-
-  `docker run -p 8000:80 vizcolab-app`
-
-- Acesse a aplicação em <http://localhost:8000>.
+### 📄 Legacy Notes (Portuguese)
+Original processing notebooks (`authors_grouping.ipynb`, etc.) are kept in `data_processing/` for reference but are superseded by the Polars-based `scripts/` pipeline for performance and stability.
